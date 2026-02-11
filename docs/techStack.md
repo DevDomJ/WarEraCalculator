@@ -210,8 +210,8 @@ This document outlines the complete technology stack for the WarEra Calculator a
 ## Networking & Access
 
 ### Local Network Access
-- Direct IP access (e.g., `http://192.168.1.100:3000`)
-- mDNS/Avahi for hostname resolution (e.g., `http://raspberrypi.local:3000`)
+- Direct IP access (e.g., `http://<your-device-ip>:<port>`)
+- mDNS/Avahi for hostname resolution (e.g., `http://<hostname>.local:<port>`)
 
 ### Remote Access Options
 
