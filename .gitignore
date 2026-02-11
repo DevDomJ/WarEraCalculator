@@ -48,3 +48,6 @@ frontend/public/icons/
 
 # PM2
 .pm2/
+
+# Kiro CLI settings
+.kiro/settings/
