@@ -39,18 +39,25 @@ export class TradingOrderService {
       const responses = await this.apiService.batchRequest<any>(endpoints);
       const timestamp = new Date();
 
-      for (let i = 0; i < responses.length; i++) {
-        const response = responses[i];
+      // tRPC batch responses are objects with numbered keys, not arrays
+      const responsesArray = Array.isArray(responses) ? responses : Object.values(responses);
+
+      for (let i = 0; i < responsesArray.length; i++) {
+        const response = responsesArray[i];
         const itemCode = itemCodes[i];
 
         if (response?.result?.data) {
-          const [buyOrders, sellOrders] = response.result.data;
+          const data = response.result.data;
+          
+          // Data is an object with buyOrders and sellOrders properties
+          const buyOrders = data.buyOrders || [];
+          const sellOrders = data.sellOrders || [];
           
           await this.prisma.tradingOrder.deleteMany({
             where: { itemCode, timestamp: { lt: timestamp } },
           });
 
-          for (const order of buyOrders || []) {
+          for (const order of buyOrders) {
             await this.prisma.tradingOrder.create({
               data: {
                 itemCode,
@@ -62,7 +69,7 @@ export class TradingOrderService {
             });
           }
 
-          for (const order of sellOrders || []) {
+          for (const order of sellOrders) {
             await this.prisma.tradingOrder.create({
               data: {
                 itemCode,

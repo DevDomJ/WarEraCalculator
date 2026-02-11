@@ -87,21 +87,35 @@ export class WarEraApiService {
     await this.waitForRateLimit();
 
     const batchEndpoint = endpoints.map(e => e.endpoint).join(',');
-    const batchParams = endpoints.reduce((acc, e, idx) => {
+    const batchInput = endpoints.reduce((acc, e, idx) => {
       acc[idx.toString()] = e.params || {};
       return acc;
     }, {} as Record<string, any>);
 
     try {
+      const url = `${this.baseUrl}/${batchEndpoint}`;
+      this.logger.debug(`Batch GET ${url} with input: ${JSON.stringify(batchInput)}`);
+      
       const response = await firstValueFrom(
-        this.httpService.get(`${this.baseUrl}/${batchEndpoint}`, {
+        this.httpService.get(url, {
           headers: this.getHeaders(),
-          params: { batch: 1, ...batchParams },
+          params: {
+            batch: '1',
+            input: JSON.stringify(batchInput),
+          },
         })
       );
+      
+      this.logger.debug(`Batch response type: ${typeof response.data}, isArray: ${Array.isArray(response.data)}`);
+      this.logger.debug(`Batch response keys: ${Object.keys(response.data || {}).join(', ')}`);
+      
       return response.data;
     } catch (error) {
       this.logger.error('Batch request failed', error);
+      if (error instanceof AxiosError && error.response) {
+        this.logger.error(`Response status: ${error.response.status}`);
+        this.logger.error(`Response data: ${JSON.stringify(error.response.data)}`);
+      }
       throw error;
     }
   }
