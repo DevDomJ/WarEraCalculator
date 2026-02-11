@@ -79,9 +79,16 @@ export default function GoodsOverview() {
         </button>
       </div>
       
-      {/* Small categories in a row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {['Cases', 'Craft', 'Buffs'].map(category => {
+      {/* Small categories - headers */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-4">
+        {['Cases', 'Craft', 'Buffs'].map(category => (
+          <h3 key={category} className="text-xl font-semibold text-gray-300">{category}</h3>
+        ))}
+      </div>
+      
+      {/* Small categories - cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4 mb-8">
+        {['Cases', 'Craft', 'Buffs'].flatMap(category => {
           const categoryItems = items?.filter(item => 
             ITEM_CATEGORIES[category as keyof typeof ITEM_CATEGORIES]?.includes(item.code)
           ).sort((a, b) => {
@@ -89,43 +96,34 @@ export default function GoodsOverview() {
             return codes.indexOf(a.code) - codes.indexOf(b.code)
           })
 
-          if (!categoryItems || categoryItems.length === 0) return null
-
-          return (
-            <div key={category}>
-              <h3 className="text-xl font-semibold text-gray-300 mb-4">{category}</h3>
-              <div className="grid grid-cols-1 gap-4">
-                {categoryItems.map(item => (
-                  <div
-                    key={item.code}
-                    onClick={() => navigate(`/item/${item.code}`)}
-                    className="bg-gray-800 rounded-lg shadow p-4 cursor-pointer hover:shadow-lg hover:bg-gray-750 transition-all"
-                  >
-                    <div className="flex items-center gap-3">
-                      <img 
-                        src={`/icons/${item.code}.png`} 
-                        alt={item.name} 
-                        className="w-12 h-12"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none'
-                        }}
-                      />
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-white">{ITEM_NAMES[item.code] || item.name}</h3>
-                        <p className="text-sm text-gray-400">{item.code}</p>
-                        {item.currentPrice && (
-                          <p className="text-lg font-bold text-green-400 mt-1">
-                            {item.currentPrice.toFixed(3)} €
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+          return categoryItems || []
+        }).map(item => (
+          <div
+            key={item.code}
+            onClick={() => navigate(`/item/${item.code}`)}
+            className="bg-gray-800 rounded-lg shadow p-4 cursor-pointer hover:shadow-lg hover:bg-gray-750 transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <img 
+                src={`/icons/${item.code}.png`} 
+                alt={item.name} 
+                className="w-12 h-12"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none'
+                }}
+              />
+              <div className="flex-1">
+                <h3 className="font-semibold text-white">{ITEM_NAMES[item.code] || item.name}</h3>
+                <p className="text-sm text-gray-400">{item.code}</p>
+                {item.currentPrice && (
+                  <p className="text-lg font-bold text-green-400 mt-1">
+                    {item.currentPrice.toFixed(3)} €
+                  </p>
+                )}
               </div>
             </div>
-          )
-        })}
+          </div>
+        ))}
       </div>
 
       {/* Large categories full width */}
