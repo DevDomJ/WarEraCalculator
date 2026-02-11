@@ -92,7 +92,17 @@ export class ProductionCalculatorService {
 
     const recipes = await this.getRecipes();
     const recipe = recipes.find(r => r.output === outputItemCode);
-    if (!recipe) throw new Error('Recipe not found');
+    
+    // Handle raw materials (no recipe, only production points)
+    if (!recipe) {
+      const items = await this.gameConfigService.getItems();
+      const item = items.find(i => i.code === outputItemCode);
+      if (!item?.productionPoints) {
+        throw new Error('Item not found or has no production data');
+      }
+      
+      return this.calculateRawMaterialProfit(company, item, productionBonus);
+    }
 
     const metrics = this.calculateProductionMetrics(company, productionBonus);
     const outputPrice = await this.getLatestPrice(outputItemCode);
@@ -172,6 +182,39 @@ export class ProductionCalculatorService {
     }
 
     return { scenarioA, scenarioB };
+  }
+
+  private async calculateRawMaterialProfit(
+    company: any,
+    item: any,
+    productionBonus: number,
+  ): Promise<{ scenarioA: ProfitScenario; scenarioB: ProfitScenario | null }> {
+    const metrics = this.calculateProductionMetrics(company, productionBonus);
+    const outputPrice = await this.getLatestPrice(item.code);
+    
+    const workers = company.workers || [];
+    const totalDailyWage = workers.reduce((sum, w) => sum + w.wage, 0);
+    const wagePerPP = totalDailyWage / metrics.totalProductionPointsPerDay;
+    
+    const outputPerPP = item.productionPoints > 0 ? 1 / item.productionPoints : 0;
+    
+    const scenarioA: ProfitScenario = {
+      revenue: outputPrice * outputPerPP,
+      costs: wagePerPP,
+      profit: 0,
+      profitPerPP: 0,
+      breakdown: {
+        outputPrice,
+        outputPerPP,
+        productionBonus,
+        inputCosts: [],
+        wagePerPP,
+      },
+    };
+    scenarioA.profit = scenarioA.revenue - scenarioA.costs;
+    scenarioA.profitPerPP = scenarioA.profit;
+    
+    return { scenarioA, scenarioB: null };
   }
 
   private async getLatestPrice(itemCode: string): Promise<number> {
