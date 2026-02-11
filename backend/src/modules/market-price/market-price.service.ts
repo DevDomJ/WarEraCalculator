@@ -22,6 +22,20 @@ export class MarketPriceService {
         
         for (const [itemCode, price] of Object.entries(prices)) {
           if (typeof price === 'number') {
+            // Get current top orders to calculate volume and best prices
+            const orders = await this.prisma.tradingOrder.findMany({
+              where: { itemCode },
+              orderBy: { timestamp: 'desc' },
+              take: 10,
+            });
+
+            const buyOrders = orders.filter(o => o.type === 'buy');
+            const sellOrders = orders.filter(o => o.type === 'sell');
+            
+            const volume = orders.reduce((sum, o) => sum + o.quantity, 0);
+            const highestBuy = buyOrders.length > 0 ? Math.max(...buyOrders.map(o => o.price)) : null;
+            const lowestSell = sellOrders.length > 0 ? Math.min(...sellOrders.map(o => o.price)) : null;
+
             await this.prisma.priceHistory.create({
               data: {
                 itemCode,

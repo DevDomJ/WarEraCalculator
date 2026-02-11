@@ -96,7 +96,9 @@ export class ProductionCalculatorService {
 
     const metrics = this.calculateProductionMetrics(company, productionBonus);
     const outputPrice = await this.getLatestPrice(outputItemCode);
-    const totalDailyWage = company.wagePerWorker * company.workers;
+    
+    const workers = company.workers || [];
+    const totalDailyWage = workers.reduce((sum, w) => sum + w.wage, 0);
     const wagePerPP = totalDailyWage / metrics.totalProductionPointsPerDay;
 
     // Calculate how many items produced per PP

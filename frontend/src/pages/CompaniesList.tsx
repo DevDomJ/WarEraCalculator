@@ -77,34 +77,46 @@ export default function CompaniesList() {
       {isLoading && <div className="text-center py-8 text-gray-300">Loading...</div>}
 
       <div className="grid gap-4">
-        {companies?.map(company => (
-          <div
-            key={company.companyId}
-            onClick={() => navigate(`/company/${company.companyId}`)}
-            className="bg-gray-800 rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow"
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="text-xl font-bold text-white">{company.name}</h3>
-                <p className="text-gray-400">{company.type} • {company.region}</p>
+        {companies?.map(company => {
+          const workers = company.workers || [];
+          const wages = workers.map(w => w.wage);
+          const minWage = wages.length > 0 ? Math.min(...wages) : 0;
+          const maxWage = wages.length > 0 ? Math.max(...wages) : 0;
+          const allSameWage = minWage === maxWage;
+          
+          return (
+            <div
+              key={company.companyId}
+              onClick={() => navigate(`/company/${company.companyId}`)}
+              className="bg-gray-800 rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow"
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-xl font-bold text-white">{company.name}</h3>
+                  <p className="text-gray-400">{company.type} • {company.region}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-gray-400">Workers</p>
+                  <p className="text-lg font-bold text-white">{workers.length}</p>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-sm text-gray-400">Workers</p>
-                <p className="text-lg font-bold text-white">{company.workers}</p>
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                <div>
+                  <p className="text-sm text-gray-400">Wage/Worker</p>
+                  <p className="font-semibold text-gray-200">
+                    {workers.length === 0 ? 'No workers' : 
+                     allSameWage ? `${minWage.toFixed(3)} €` : 
+                     `${minWage.toFixed(3)} € - ${maxWage.toFixed(3)} €`}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">Production Value</p>
+                  <p className="font-semibold text-gray-200">{company.productionValue.toFixed(2)}</p>
+                </div>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <div>
-                <p className="text-sm text-gray-400">Wage/Worker</p>
-                <p className="font-semibold text-gray-200">{company.wagePerWorker.toFixed(3)} €</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">Production Value</p>
-                <p className="font-semibold text-gray-200">{company.productionValue.toFixed(2)}</p>
-              </div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   )

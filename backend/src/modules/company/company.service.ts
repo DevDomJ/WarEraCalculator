@@ -8,10 +8,19 @@ export interface CompanyData {
   name: string;
   type: string;
   region: string;
-  workers: number;
-  wagePerWorker: number;
   productionValue: number;
   energyConsumption: number;
+  workers?: WorkerData[];
+}
+
+export interface WorkerData {
+  workerId: string;
+  userId: string;
+  username?: string;
+  avatarUrl?: string;
+  wage: number;
+  maxEnergy?: number;
+  production?: number;
 }
 
 @Injectable()
@@ -78,6 +87,55 @@ export class CompanyService {
             // Work offer not found is OK - company might not have one
             this.logger.debug(`No work offer for company ${companyId}`);
           }
+
+          // Fetch workers
+          this.logger.debug(`Fetching workers for ${companyId}`);
+          let workers: WorkerData[] = [];
+          try {
+            const workersResponse = await this.apiService.request<any>(
+              'worker.getWorkers',
+              { companyId }
+            );
+            const workersData = Array.isArray(workersResponse) ? workersResponse[0] : workersResponse;
+            const workersList = workersData?.result?.data?.workers || [];
+            
+            // Fetch user data for each worker to get maxEnergy and production
+            workers = await Promise.all(workersList.map(async (w: any) => {
+              try {
+                const userResponse = await this.apiService.request<any>(
+                  'user.getUserLite',
+                  { userId: w.user || w.userId }
+                );
+                const userData = Array.isArray(userResponse) ? userResponse[0] : userResponse;
+                const user = userData?.result?.data;
+                
+                return {
+                  workerId: w._id || w.id,
+                  userId: w.user || w.userId,
+                  username: user?.username || 'Unknown',
+                  avatarUrl: user?.avatarUrl || null,
+                  wage: w.wage || 0,
+                  maxEnergy: user?.skills?.energy?.total || 70,
+                  production: user?.skills?.production?.total || 0,
+                };
+              } catch (error) {
+                this.logger.debug(`Failed to fetch user data for worker ${w._id}: ${error.message}`);
+                return {
+                  workerId: w._id || w.id,
+                  userId: w.user || w.userId,
+                  username: 'Unknown',
+                  avatarUrl: null,
+                  wage: w.wage || 0,
+                  maxEnergy: 70,
+                  production: 0,
+                };
+              }
+            }));
+            
+            this.logger.debug(`Fetched ${workers.length} workers with user data`);
+          } catch (error) {
+            this.logger.debug(`Failed to fetch workers for company ${companyId}: ${error.message}`);
+          }
           
           const companyDataObj: CompanyData = {
             companyId: company._id || company.id,
@@ -85,17 +143,48 @@ export class CompanyService {
             name: company.name,
             type: company.itemCode || company.type,
             region: company.region,
-            workers: workOffer?.workers || company.workerCount || 0,
-            wagePerWorker: workOffer?.wage || 0,
             productionValue: workOffer?.productionValue || company.production || 0,
             energyConsumption: workOffer?.energyConsumption || 10,
+            workers,
           };
 
           await this.prisma.company.upsert({
             where: { companyId: companyDataObj.companyId },
-            update: companyDataObj,
-            create: companyDataObj,
+            update: {
+              userId: companyDataObj.userId,
+              name: companyDataObj.name,
+              type: companyDataObj.type,
+              region: companyDataObj.region,
+              productionValue: companyDataObj.productionValue,
+              energyConsumption: companyDataObj.energyConsumption,
+            },
+            create: {
+              companyId: companyDataObj.companyId,
+              userId: companyDataObj.userId,
+              name: companyDataObj.name,
+              type: companyDataObj.type,
+              region: companyDataObj.region,
+              productionValue: companyDataObj.productionValue,
+              energyConsumption: companyDataObj.energyConsumption,
+            },
           });
+
+          // Update workers
+          await this.prisma.worker.deleteMany({ where: { companyId: companyDataObj.companyId } });
+          if (workers.length > 0) {
+            await this.prisma.worker.createMany({
+              data: workers.map(w => ({
+                workerId: w.workerId,
+                companyId: companyDataObj.companyId,
+                userId: w.userId,
+                username: w.username || 'Unknown',
+                avatarUrl: w.avatarUrl || null,
+                wage: w.wage,
+                maxEnergy: w.maxEnergy || 70,
+                production: w.production || 0,
+              })),
+            });
+          }
 
           companyDataList.push(companyDataObj);
         } catch (error) {
@@ -112,10 +201,44 @@ export class CompanyService {
   }
 
   async getCompanyById(companyId: string): Promise<CompanyData | null> {
-    return this.prisma.company.findUnique({ where: { companyId } });
+    const company = await this.prisma.company.findUnique({ 
+      where: { companyId },
+      include: { workers: true }
+    });
+    
+    if (!company) return null;
+    
+    return {
+      ...company,
+      workers: company.workers.map(w => ({
+        workerId: w.workerId,
+        userId: w.userId,
+        username: w.username,
+        avatarUrl: w.avatarUrl,
+        wage: w.wage,
+        maxEnergy: w.maxEnergy,
+        production: w.production,
+      })),
+    };
   }
 
   async getCompaniesByUserId(userId: string): Promise<CompanyData[]> {
-    return this.prisma.company.findMany({ where: { userId } });
+    const companies = await this.prisma.company.findMany({ 
+      where: { userId },
+      include: { workers: true }
+    });
+    
+    return companies.map(company => ({
+      ...company,
+      workers: company.workers.map(w => ({
+        workerId: w.workerId,
+        userId: w.userId,
+        username: w.username,
+        avatarUrl: w.avatarUrl,
+        wage: w.wage,
+        maxEnergy: w.maxEnergy,
+        production: w.production,
+      })),
+    }));
   }
 }

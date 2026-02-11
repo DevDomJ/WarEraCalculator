@@ -1,11 +1,18 @@
 import { useQuery } from '@tanstack/react-query'
 import { useParams, useNavigate } from 'react-router-dom'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, BarChart, Bar } from 'recharts'
 import { itemsApi, pricesApi } from '../api/client'
+import { useState } from 'react'
 
 export default function ItemDetail() {
   const { code } = useParams<{ code: string }>()
   const navigate = useNavigate()
+  const [visibleLines, setVisibleLines] = useState({
+    price: true,
+    highestBuy: true,
+    lowestSell: true,
+    volume: true,
+  })
 
   const { data: item } = useQuery({
     queryKey: ['item', code],
@@ -30,7 +37,36 @@ export default function ItemDetail() {
   const chartData = priceHistory?.map(p => ({
     date: new Date(p.timestamp).toLocaleDateString(),
     price: p.price,
+    highestBuy: p.highestBuy,
+    lowestSell: p.lowestSell,
+    volume: p.volume,
   })) || []
+
+  const handleLegendClick = (dataKey: string) => {
+    setVisibleLines(prev => ({ ...prev, [dataKey]: !prev[dataKey] }))
+  }
+
+  const renderLegend = (props: any) => {
+    const { payload } = props
+    return (
+      <div className="flex justify-center gap-6 mt-4">
+        {payload.map((entry: any) => (
+          <div
+            key={entry.dataKey}
+            onClick={() => handleLegendClick(entry.dataKey)}
+            className="flex items-center gap-2 cursor-pointer"
+            style={{ opacity: visibleLines[entry.dataKey as keyof typeof visibleLines] ? 1 : 0.5 }}
+          >
+            <div
+              className="w-4 h-4 rounded"
+              style={{ backgroundColor: entry.color }}
+            />
+            <span className="text-gray-300">{entry.value}</span>
+          </div>
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -71,8 +107,29 @@ export default function ItemDetail() {
             <XAxis dataKey="date" stroke="#9ca3af" />
             <YAxis stroke="#9ca3af" />
             <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: 'none', color: '#fff' }} />
-            <Line type="monotone" dataKey="price" stroke="#10b981" strokeWidth={2} />
+            <Legend 
+              content={renderLegend}
+            />
+            <Line type="monotone" dataKey="price" stroke="#10b981" strokeWidth={2} name="Average Price" hide={!visibleLines.price} />
+            <Line type="monotone" dataKey="highestBuy" stroke="#3b82f6" strokeWidth={2} name="Highest Buy" hide={!visibleLines.highestBuy} />
+            <Line type="monotone" dataKey="lowestSell" stroke="#ef4444" strokeWidth={2} name="Lowest Sell" hide={!visibleLines.lowestSell} />
           </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="bg-gray-800 rounded-lg shadow p-6 mb-6">
+        <h3 className="text-xl font-bold mb-4 text-white">Trade Volume (30 Days)</h3>
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <XAxis dataKey="date" stroke="#9ca3af" />
+            <YAxis stroke="#9ca3af" />
+            <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: 'none', color: '#fff' }} />
+            <Legend 
+              content={renderLegend}
+            />
+            <Bar dataKey="volume" fill="#8b5cf6" name="Volume" hide={!visibleLines.volume} />
+          </BarChart>
         </ResponsiveContainer>
       </div>
 

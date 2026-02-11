@@ -24,6 +24,9 @@ model PriceHistory {
   id          Int      @id @default(autoincrement())
   itemCode    String
   price       Float
+  volume      Int      @default(0)
+  highestBuy  Float?
+  lowestSell  Float?
   timestamp   DateTime @default(now())
   
   item        Item     @relation(fields: [itemCode], references: [code])
@@ -51,15 +54,33 @@ model Company {
   name            String
   type            String
   region          String
-  workers         Int
-  wagePerWorker   Float
   productionValue Float
   energyConsumption Float
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
+  workers           Worker[]
   productionHistory ProductionHistory[]
   
+  @@index([userId])
+}
+
+model Worker {
+  id              Int      @id @default(autoincrement())
+  workerId        String   @unique
+  companyId       String
+  userId          String
+  username        String   @default("Unknown")
+  avatarUrl       String?
+  wage            Float
+  maxEnergy       Float    @default(70)
+  production      Float    @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  company         Company  @relation(fields: [companyId], references: [companyId])
+  
+  @@index([companyId])
   @@index([userId])
 }
 

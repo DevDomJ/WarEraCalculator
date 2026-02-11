@@ -16,6 +16,9 @@ export interface PriceHistory {
   id: number
   itemCode: string
   price: number
+  volume: number
+  highestBuy?: number
+  lowestSell?: number
   timestamp: string
 }
 
@@ -28,16 +31,25 @@ export interface TradingOrder {
   timestamp: string
 }
 
+export interface Worker {
+  workerId: string
+  userId: string
+  username?: string
+  avatarUrl?: string
+  wage: number
+  maxEnergy?: number
+  production?: number
+}
+
 export interface Company {
   companyId: string
   userId: string
   name: string
   type: string
   region: string
-  workers: number
-  wagePerWorker: number
   productionValue: number
   energyConsumption: number
+  workers?: Worker[]
 }
 
 export interface ProductionMetrics {
