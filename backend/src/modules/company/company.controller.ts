@@ -26,8 +26,18 @@ export class CompanyController {
     if (!company) {
       throw new Error('Company not found');
     }
-    // Refetch from API
-    const companies = await this.companyService.fetchCompaniesByUserId(company.userId);
-    return companies.find(c => c.companyId === id);
+    // Refetch from API to update database
+    await this.companyService.fetchCompaniesByUserId(company.userId);
+    // Return updated company from database
+    const updated = await this.companyService.getCompanyById(id);
+    if (!updated) {
+      throw new Error('Company not found after refresh');
+    }
+    return updated;
+  }
+
+  @Post('reorder')
+  async reorderCompanies(@Body() body: { companyIds: string[] }) {
+    return this.companyService.updateCompanyOrder(body.companyIds);
   }
 }

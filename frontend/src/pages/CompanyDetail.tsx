@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate } from 'react-router-dom'
 import { companyApi, productionApi, itemsApi } from '../api/client'
 import { ITEM_NAMES } from '../utils/itemNames'
@@ -8,6 +8,7 @@ import ProductionTracker from '../components/ProductionTracker'
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [productionBonus, setProductionBonus] = useState(0.2)
   const [showAnalytics, setShowAnalytics] = useState(false)
 
@@ -18,6 +19,21 @@ export default function CompanyDetail() {
     return new Date(lastFetched).getTime() < fiveMinutesAgo
   }
 
+  const refreshMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`http://localhost:3000/api/companies/${id}/refresh`, {
+        method: 'POST'
+      })
+      if (!response.ok) {
+        throw new Error('Refresh failed')
+      }
+      return response.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['company', id] })
+    },
+  })
+
   const { data: company, refetch } = useQuery({
     queryKey: ['company', id],
     queryFn: async () => {
@@ -26,9 +42,14 @@ export default function CompanyDetail() {
       if (shouldRefetch(data.lastFetched)) {
         console.log('Cache is old, refreshing...', data.lastFetched)
         try {
-          const refreshed = await fetch(`http://localhost:3000/api/companies/${id}/refresh`, {
+          const response = await fetch(`http://localhost:3000/api/companies/${id}/refresh`, {
             method: 'POST'
-          }).then(r => r.json())
+          })
+          if (!response.ok) {
+            console.error('Refresh failed with status:', response.status)
+            return data
+          }
+          const refreshed = await response.json()
           console.log('Refreshed data:', refreshed)
           return refreshed
         } catch (e) {
@@ -62,7 +83,7 @@ export default function CompanyDetail() {
   const totalDailyWage = wages.reduce((sum, wage) => sum + wage, 0);
   const maxEnergy = 70
   const actionsPerDay = maxEnergy * 0.24
-  const ppPerWork = company.productionValue * (1 + productionBonus)
+  const ppPerWork = (company.productionValue || 0) * (1 + productionBonus)
   const totalPP = actionsPerDay * ppPerWork
 
   return (
@@ -75,10 +96,11 @@ export default function CompanyDetail() {
           ← Back to Companies
         </button>
         <button
-          onClick={() => refetch()}
-          className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm"
+          onClick={() => refreshMutation.mutate()}
+          disabled={refreshMutation.isPending}
+          className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm disabled:bg-gray-600"
         >
-          Refresh
+          {refreshMutation.isPending ? 'Refreshing...' : 'Refresh'}
         </button>
       </div>
 
@@ -98,7 +120,7 @@ export default function CompanyDetail() {
           <div>
             <p className="text-sm text-gray-400">Current Production</p>
             <p className="text-xl font-bold text-white">
-              {company.productionValue.toFixed(0)} / {company.maxProduction}
+              {(company.productionValue || 0).toFixed(0)} / {company.maxProduction || 0}
             </p>
           </div>
         </div>
@@ -214,7 +236,7 @@ export default function CompanyDetail() {
           </div>
         )}
 
-        {profit && profit.scenarioA.breakdown.inputCosts.length > 0 && (
+        {profit && profit.scenarioA?.breakdown?.inputCosts?.length > 0 && (
           <div className="grid md:grid-cols-2 gap-4">
             <div className="border border-gray-700 rounded p-4">
               <h4 className="font-bold mb-2 text-white">Scenario A: Buy Inputs</h4>

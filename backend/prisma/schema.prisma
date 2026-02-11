@@ -59,6 +59,7 @@ model Company {
   productionValue Float
   maxProduction   Float    @default(200)
   energyConsumption Float
+  displayOrder    Int      @default(0)
   lastFetched     DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

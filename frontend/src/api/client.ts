@@ -107,6 +107,8 @@ export const companyApi = {
     api.get<Company[]>(`/companies/user/${userId}`).then(res => res.data),
   getById: (id: string) => 
     api.get<Company>(`/companies/${id}`).then(res => res.data),
+  reorder: (companyIds: string[]) =>
+    api.post('/companies/reorder', { companyIds }).then(res => res.data),
 }
 
 export const productionApi = {

@@ -255,7 +255,8 @@ export class CompanyService {
   async getCompaniesByUserId(userId: string): Promise<CompanyData[]> {
     const companies = await this.prisma.company.findMany({ 
       where: { userId },
-      include: { workers: true }
+      include: { workers: true },
+      orderBy: { displayOrder: 'asc' }
     });
     
     return companies.map(company => ({
@@ -270,5 +271,16 @@ export class CompanyService {
         production: w.production,
       })),
     }));
+  }
+
+  async updateCompanyOrder(companyIds: string[]): Promise<void> {
+    await Promise.all(
+      companyIds.map((companyId, index) =>
+        this.prisma.company.updateMany({
+          where: { companyId },
+          data: { displayOrder: index },
+        })
+      )
+    );
   }
 }
