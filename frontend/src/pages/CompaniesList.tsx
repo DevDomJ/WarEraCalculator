@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import { companyApi } from '../api/client'
 import { ITEM_NAMES } from '../utils/itemNames'
 
 export default function CompaniesList() {
@@ -8,24 +9,15 @@ export default function CompaniesList() {
   const [userId, setUserId] = useState(localStorage.getItem('userId') || '')
   const [inputUserId, setInputUserId] = useState('')
 
-  const { data: companies, isLoading, refetch } = useQuery({
+  const { data: companies, isLoading, refetch, error } = useQuery({
     queryKey: ['companies', userId],
-    queryFn: async () => {
-      const data = await companyApi.getByUserId(userId)
-      // Check if any company needs refresh (cache older than 5 minutes)
-      const needsRefresh = data.some(c => {
-        if (!c.lastFetched) return true
-        const fiveMinutesAgo = Date.now() - 5 * 60 * 1000
-        return new Date(c.lastFetched).getTime() < fiveMinutesAgo
-      })
-      if (needsRefresh) {
-        await companyApi.fetchByUserId(userId)
-        return companyApi.getByUserId(userId)
-      }
-      return data
-    },
+    queryFn: () => companyApi.getByUserId(userId),
     enabled: !!userId,
   })
+
+  if (error) {
+    console.error('Query error:', error)
+  }
 
   const fetchMutation = useMutation({
     mutationFn: (uid: string) => companyApi.fetchByUserId(uid),
