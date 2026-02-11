@@ -35,17 +35,24 @@ export class PriceHistoryController {
 
     if (!latestTimestamp) return { buyOrders: [], sellOrders: [] };
 
-    const orders = await this.prisma.tradingOrder.findMany({
+    const buyOrders = await this.prisma.tradingOrder.findMany({
       where: {
         itemCode,
         timestamp: latestTimestamp.timestamp,
+        type: 'buy',
       },
       orderBy: { price: 'desc' },
     });
 
-    return {
-      buyOrders: orders.filter(o => o.type === 'buy'),
-      sellOrders: orders.filter(o => o.type === 'sell'),
-    };
+    const sellOrders = await this.prisma.tradingOrder.findMany({
+      where: {
+        itemCode,
+        timestamp: latestTimestamp.timestamp,
+        type: 'sell',
+      },
+      orderBy: { price: 'asc' },
+    });
+
+    return { buyOrders, sellOrders };
   }
 }
