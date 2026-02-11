@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { companyApi } from '../api/client'
+import { ITEM_NAMES } from '../utils/itemNames'
 
 export default function CompaniesList() {
   const navigate = useNavigate()
@@ -10,7 +10,20 @@ export default function CompaniesList() {
 
   const { data: companies, isLoading, refetch } = useQuery({
     queryKey: ['companies', userId],
-    queryFn: () => companyApi.getByUserId(userId),
+    queryFn: async () => {
+      const data = await companyApi.getByUserId(userId)
+      // Check if any company needs refresh (cache older than 5 minutes)
+      const needsRefresh = data.some(c => {
+        if (!c.lastFetched) return true
+        const fiveMinutesAgo = Date.now() - 5 * 60 * 1000
+        return new Date(c.lastFetched).getTime() < fiveMinutesAgo
+      })
+      if (needsRefresh) {
+        await companyApi.fetchByUserId(userId)
+        return companyApi.getByUserId(userId)
+      }
+      return data
+    },
     enabled: !!userId,
   })
 
@@ -91,9 +104,19 @@ export default function CompaniesList() {
               className="bg-gray-800 rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition-shadow"
             >
               <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-xl font-bold text-white">{company.name}</h3>
-                  <p className="text-gray-400">{company.type} • {company.region}</p>
+                <div className="flex items-center gap-3">
+                  <img 
+                    src={`/icons/${company.type}.png`} 
+                    alt={ITEM_NAMES[company.type] || company.type} 
+                    className="w-12 h-12"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none'
+                    }}
+                  />
+                  <div>
+                    <h3 className="text-xl font-bold text-white">{company.name}</h3>
+                    <p className="text-gray-400">{ITEM_NAMES[company.type] || company.type} • {company.region}</p>
+                  </div>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-gray-400">Workers</p>
@@ -110,8 +133,10 @@ export default function CompaniesList() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Production Value</p>
-                  <p className="font-semibold text-gray-200">{company.productionValue.toFixed(2)}</p>
+                  <p className="text-sm text-gray-400">Current Production</p>
+                  <p className="font-semibold text-gray-200">
+                    {company.productionValue.toFixed(0)} / {company.maxProduction}
+                  </p>
                 </div>
               </div>
             </div>

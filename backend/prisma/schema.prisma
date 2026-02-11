@@ -55,7 +55,9 @@ model Company {
   type            String
   region          String
   productionValue Float
+  maxProduction   Float    @default(200)
   energyConsumption Float
+  lastFetched     DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   

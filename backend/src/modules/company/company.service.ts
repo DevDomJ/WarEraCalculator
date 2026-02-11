@@ -9,8 +9,10 @@ export interface CompanyData {
   type: string;
   region: string;
   productionValue: number;
+  maxProduction: number;
   energyConsumption: number;
   workers?: WorkerData[];
+  lastFetched?: Date;
 }
 
 export interface WorkerData {
@@ -83,10 +85,24 @@ export class CompanyService {
             );
             const workOfferData = Array.isArray(workOfferResponse) ? workOfferResponse[0] : workOfferResponse;
             workOffer = workOfferData?.result?.data;
+            
+            this.logger.log(`=== WORK OFFER DATA for ${company.name} (${companyId}) ===`);
+            this.logger.log(`Endpoint: workOffer.getWorkOfferByCompanyId`);
+            this.logger.log(`Full Response: ${JSON.stringify(workOfferData, null, 2)}`);
+            this.logger.log(`productionValue: ${workOffer?.productionValue}`);
+            this.logger.log(`=== END WORK OFFER DATA ===`);
           } catch (error) {
             // Work offer not found is OK - company might not have one
             this.logger.debug(`No work offer for company ${companyId}`);
           }
+          
+          this.logger.log(`=== COMPANY DATA for ${company.name} (${companyId}) ===`);
+          this.logger.log(`Endpoint: company.getById`);
+          this.logger.log(`Full company object: ${JSON.stringify(company, null, 2)}`);
+          this.logger.log(`company.production: ${company.production}`);
+          this.logger.log(`company.maxProduction: ${company.maxProduction}`);
+          this.logger.log(`Final productionValue used: ${workOffer?.productionValue || company.production || 0}`);
+          this.logger.log(`=== END COMPANY DATA ===`);
 
           // Fetch workers
           this.logger.debug(`Fetching workers for ${companyId}`);
@@ -137,15 +153,25 @@ export class CompanyService {
             this.logger.debug(`Failed to fetch workers for company ${companyId}: ${error.message}`);
           }
           
+          // Get max production from storage level
+          const storageLevel = company.activeUpgradeLevels?.storage || 1;
+          const maxProductionByLevel = {
+            1: 200, 2: 400, 3: 600, 4: 800, 5: 1000, 6: 1200,
+            7: 1400, 8: 1600, 9: 1800, 10: 2000
+          };
+          const maxProduction = maxProductionByLevel[storageLevel] || 200;
+
           const companyDataObj: CompanyData = {
             companyId: company._id || company.id,
             userId,
             name: company.name,
             type: company.itemCode || company.type,
             region: company.region,
-            productionValue: workOffer?.productionValue || company.production || 0,
+            productionValue: company.production || 0,
+            maxProduction,
             energyConsumption: workOffer?.energyConsumption || 10,
             workers,
+            lastFetched: new Date(),
           };
 
           await this.prisma.company.upsert({
@@ -156,7 +182,9 @@ export class CompanyService {
               type: companyDataObj.type,
               region: companyDataObj.region,
               productionValue: companyDataObj.productionValue,
+              maxProduction: companyDataObj.maxProduction,
               energyConsumption: companyDataObj.energyConsumption,
+              lastFetched: companyDataObj.lastFetched,
             },
             create: {
               companyId: companyDataObj.companyId,
@@ -165,7 +193,9 @@ export class CompanyService {
               type: companyDataObj.type,
               region: companyDataObj.region,
               productionValue: companyDataObj.productionValue,
+              maxProduction: companyDataObj.maxProduction,
               energyConsumption: companyDataObj.energyConsumption,
+              lastFetched: companyDataObj.lastFetched,
             },
           });
 

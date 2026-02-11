@@ -19,4 +19,15 @@ export class CompanyController {
   async getCompany(@Param('id') id: string) {
     return this.companyService.getCompanyById(id);
   }
+
+  @Post(':id/refresh')
+  async refreshCompany(@Param('id') id: string) {
+    const company = await this.companyService.getCompanyById(id);
+    if (!company) {
+      throw new Error('Company not found');
+    }
+    // Refetch from API
+    const companies = await this.companyService.fetchCompaniesByUserId(company.userId);
+    return companies.find(c => c.companyId === id);
+  }
 }

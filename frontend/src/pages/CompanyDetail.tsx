@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useParams, useNavigate } from 'react-router-dom'
 import { companyApi, productionApi, itemsApi } from '../api/client'
-import ProductionHistoryChart from '../components/ProductionHistoryChart'
+import { ITEM_NAMES } from '../utils/itemNames'
 import ProductionTracker from '../components/ProductionTracker'
 
 export default function CompanyDetail() {
@@ -11,10 +11,36 @@ export default function CompanyDetail() {
   const [productionBonus, setProductionBonus] = useState(0.2)
   const [showAnalytics, setShowAnalytics] = useState(false)
 
-  const { data: company } = useQuery({
+  // Check if cache is older than 5 minutes
+  const shouldRefetch = (lastFetched?: string) => {
+    if (!lastFetched) return true
+    const fiveMinutesAgo = Date.now() - 5 * 60 * 1000
+    return new Date(lastFetched).getTime() < fiveMinutesAgo
+  }
+
+  const { data: company, refetch } = useQuery({
     queryKey: ['company', id],
-    queryFn: () => companyApi.getById(id!),
+    queryFn: async () => {
+      const data = await companyApi.getById(id!)
+      // If cache is old, trigger refresh
+      if (shouldRefetch(data.lastFetched)) {
+        console.log('Cache is old, refreshing...', data.lastFetched)
+        try {
+          const refreshed = await fetch(`http://localhost:3000/api/companies/${id}/refresh`, {
+            method: 'POST'
+          }).then(r => r.json())
+          console.log('Refreshed data:', refreshed)
+          return refreshed
+        } catch (e) {
+          console.error('Refresh failed:', e)
+          return data // Fallback to cached data
+        }
+      }
+      return data
+    },
     enabled: !!id,
+    staleTime: 0, // Always consider data stale
+    cacheTime: 0, // Don't cache
   })
 
   const { data: outputItem } = useQuery({
@@ -41,12 +67,20 @@ export default function CompanyDetail() {
 
   return (
     <div>
-      <button
-        onClick={() => navigate('/companies')}
-        className="mb-4 text-blue-400 hover:text-blue-300"
-      >
-        ← Back to Companies
-      </button>
+      <div className="flex justify-between items-center mb-4">
+        <button
+          onClick={() => navigate('/companies')}
+          className="text-blue-400 hover:text-blue-300"
+        >
+          ← Back to Companies
+        </button>
+        <button
+          onClick={() => refetch()}
+          className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm"
+        >
+          Refresh
+        </button>
+      </div>
 
       <div className="bg-gray-800 rounded-lg shadow p-6 mb-6">
         <h2 className="text-3xl font-bold mb-2 text-white">{company.name}</h2>
@@ -62,8 +96,10 @@ export default function CompanyDetail() {
             <p className="text-xl font-bold text-white">{totalDailyWage.toFixed(3)} €</p>
           </div>
           <div>
-            <p className="text-sm text-gray-400">Production Value</p>
-            <p className="text-xl font-bold text-white">{company.productionValue.toFixed(2)}</p>
+            <p className="text-sm text-gray-400">Current Production</p>
+            <p className="text-xl font-bold text-white">
+              {company.productionValue.toFixed(0)} / {company.maxProduction}
+            </p>
           </div>
         </div>
 
@@ -161,11 +197,16 @@ export default function CompanyDetail() {
         
         {outputItem && (
           <div className="mb-4 flex items-center gap-3 p-3 bg-gray-700 rounded">
-            {outputItem.icon && (
-              <img src={outputItem.icon} alt={outputItem.name} className="w-10 h-10" />
-            )}
+            <img 
+              src={`/icons/${company.type}.png`} 
+              alt={ITEM_NAMES[company.type] || company.type} 
+              className="w-10 h-10"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none'
+              }}
+            />
             <div>
-              <p className="font-semibold text-white">{outputItem.name}</p>
+              <p className="font-semibold text-white">{ITEM_NAMES[company.type] || company.type}</p>
               <p className="text-sm text-gray-400">
                 Current Price: <span className="text-green-400 font-bold">{outputItem.currentPrice?.toFixed(3) || 'N/A'} €</span>
               </p>

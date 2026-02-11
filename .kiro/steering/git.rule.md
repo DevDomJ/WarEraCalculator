@@ -6,6 +6,7 @@ This rule dictates kiro (the agent) behavior related to git.
 - ALWAYS ensure commit messages are meaningful and detailed, including what was changed and why (ID: GIT_COMMIT)
 - Commit message should be accurate but playful and not too formal, with comprehensive details about the changes (ID: GIT_COMMIT_STYLE)
 - Include specific files/components modified and the impact of changes in commit messages (ID: GIT_COMMIT_DETAILS)
+- There could be other changes made not related to the current session. Analyze the changes and if you find changes not related to the current context, ask the user if those changes should be committed as well.
 ## Priority
 Medium
 ## Error Handling

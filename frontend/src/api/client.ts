@@ -48,7 +48,9 @@ export interface Company {
   type: string
   region: string
   productionValue: number
+  maxProduction: number
   energyConsumption: number
+  lastFetched?: string
   workers?: Worker[]
 }
 
