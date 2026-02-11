@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Item {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  name        String
+  icon        String?
+  order       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  priceHistory    PriceHistory[]
+  tradingOrders   TradingOrder[]
+}
+
+model PriceHistory {
+  id          Int      @id @default(autoincrement())
+  itemCode    String
+  price       Float
+  timestamp   DateTime @default(now())
+  
+  item        Item     @relation(fields: [itemCode], references: [code])
+  
+  @@index([itemCode, timestamp])
+}
+
+model TradingOrder {
+  id          Int      @id @default(autoincrement())
+  itemCode    String
+  type        String   // "buy" or "sell"
+  price       Float
+  quantity    Int
+  timestamp   DateTime @default(now())
+  
+  item        Item     @relation(fields: [itemCode], references: [code])
+  
+  @@index([itemCode, type, timestamp])
+}
+
+model Company {
+  id              Int      @id @default(autoincrement())
+  companyId       String   @unique
+  userId          String
+  name            String
+  type            String
+  region          String
+  workers         Int
+  wagePerWorker   Float
+  productionValue Float
+  energyConsumption Float
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  productionHistory ProductionHistory[]
+  
+  @@index([userId])
+}
+
+model ProductionHistory {
+  id              Int      @id @default(autoincrement())
+  companyId       String
+  date            DateTime
+  actualPP        Float
+  expectedPP      Float
+  variance        Float
+  
+  company         Company  @relation(fields: [companyId], references: [companyId])
+  
+  @@unique([companyId, date])
+  @@index([companyId, date])
+}
