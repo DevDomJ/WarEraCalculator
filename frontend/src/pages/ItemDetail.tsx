@@ -43,7 +43,14 @@ export default function ItemDetail() {
 
       <div className="bg-gray-800 rounded-lg shadow p-6 mb-6">
         <div className="flex items-center gap-4 mb-4">
-          {item.icon && <img src={item.icon} alt={item.name} className="w-16 h-16" />}
+          <img 
+            src={`/icons/${item.code}.png`} 
+            alt={item.name} 
+            className="w-16 h-16"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none'
+            }}
+          />
           <div>
             <h2 className="text-3xl font-bold text-white">{item.name}</h2>
             <p className="text-gray-400">{item.code}</p>
@@ -51,7 +58,7 @@ export default function ItemDetail() {
         </div>
         {item.currentPrice && (
           <p className="text-2xl font-bold text-green-400">
-            Current Price: ${item.currentPrice.toFixed(2)}
+            Current Price: {item.currentPrice.toFixed(3)} €
           </p>
         )}
       </div>
@@ -82,7 +89,7 @@ export default function ItemDetail() {
             <tbody>
               {orders?.buyOrders.map(order => (
                 <tr key={order.id} className="border-b border-gray-700">
-                  <td className="py-2 text-gray-200">${order.price.toFixed(2)}</td>
+                  <td className="py-2 text-gray-200">{order.price.toFixed(3)} €</td>
                   <td className="text-right py-2 text-gray-200">{order.quantity}</td>
                 </tr>
               ))}
@@ -102,7 +109,7 @@ export default function ItemDetail() {
             <tbody>
               {orders?.sellOrders.map(order => (
                 <tr key={order.id} className="border-b border-gray-700">
-                  <td className="py-2 text-gray-200">${order.price.toFixed(2)}</td>
+                  <td className="py-2 text-gray-200">{order.price.toFixed(3)} €</td>
                   <td className="text-right py-2 text-gray-200">{order.quantity}</td>
                 </tr>
               ))}

@@ -44,15 +44,20 @@ export default function GoodsOverview() {
             className="bg-gray-800 rounded-lg shadow p-4 cursor-pointer hover:shadow-lg hover:bg-gray-750 transition-all"
           >
             <div className="flex items-center gap-3">
-              {item.icon && (
-                <img src={item.icon} alt={item.name} className="w-12 h-12" />
-              )}
+              <img 
+                src={`/icons/${item.code}.png`} 
+                alt={item.name} 
+                className="w-12 h-12"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none'
+                }}
+              />
               <div className="flex-1">
                 <h3 className="font-semibold text-white">{item.name}</h3>
                 <p className="text-sm text-gray-400">{item.code}</p>
                 {item.currentPrice && (
                   <p className="text-lg font-bold text-green-400 mt-1">
-                    ${item.currentPrice.toFixed(2)}
+                    {item.currentPrice.toFixed(3)} €
                   </p>
                 )}
               </div>

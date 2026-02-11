@@ -1,14 +1,13 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useParams, useNavigate } from 'react-router-dom'
-import { companyApi, productionApi } from '../api/client'
+import { companyApi, productionApi, itemsApi } from '../api/client'
 import ProductionHistoryChart from '../components/ProductionHistoryChart'
 import ProductionTracker from '../components/ProductionTracker'
 
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [selectedItem, setSelectedItem] = useState('bread')
   const [productionBonus, setProductionBonus] = useState(0.2)
   const [showAnalytics, setShowAnalytics] = useState(false)
 
@@ -18,15 +17,16 @@ export default function CompanyDetail() {
     enabled: !!id,
   })
 
-  const { data: recipes } = useQuery({
-    queryKey: ['recipes'],
-    queryFn: productionApi.getRecipes,
+  const { data: outputItem } = useQuery({
+    queryKey: ['item', company?.type],
+    queryFn: () => itemsApi.getByCode(company!.type),
+    enabled: !!company?.type,
   })
 
   const { data: profit } = useQuery({
-    queryKey: ['profit', id, selectedItem, productionBonus],
-    queryFn: () => productionApi.calculateProfit(id!, selectedItem, productionBonus),
-    enabled: !!id && !!selectedItem,
+    queryKey: ['profit', id, company?.type, productionBonus],
+    queryFn: () => productionApi.calculateProfit(id!, company!.type, productionBonus),
+    enabled: !!id && !!company?.type,
   })
 
   if (!company) return <div className="text-gray-300">Loading...</div>
@@ -57,11 +57,11 @@ export default function CompanyDetail() {
           </div>
           <div>
             <p className="text-sm text-gray-400">Wage/Worker</p>
-            <p className="text-xl font-bold text-white">${company.wagePerWorker.toFixed(2)}</p>
+            <p className="text-xl font-bold text-white">{company.wagePerWorker.toFixed(3)} €</p>
           </div>
           <div>
             <p className="text-sm text-gray-400">Total Daily Wage</p>
-            <p className="text-xl font-bold text-white">${totalDailyWage.toFixed(2)}</p>
+            <p className="text-xl font-bold text-white">{totalDailyWage.toFixed(3)} €</p>
           </div>
           <div>
             <p className="text-sm text-gray-400">Production Value</p>
@@ -130,20 +130,19 @@ export default function CompanyDetail() {
       <div className="bg-gray-800 rounded-lg shadow p-6">
         <h3 className="text-xl font-bold mb-4 text-white">Profit Calculator</h3>
         
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-2 text-gray-300">Output Item</label>
-          <select
-            value={selectedItem}
-            onChange={(e) => setSelectedItem(e.target.value)}
-            className="px-4 py-2 border border-gray-600 bg-gray-700 text-white rounded"
-          >
-            {recipes?.map((recipe: any) => (
-              <option key={recipe.itemCode} value={recipe.itemCode}>
-                {recipe.itemCode}
-              </option>
-            ))}
-          </select>
-        </div>
+        {outputItem && (
+          <div className="mb-4 flex items-center gap-3 p-3 bg-gray-700 rounded">
+            {outputItem.icon && (
+              <img src={outputItem.icon} alt={outputItem.name} className="w-10 h-10" />
+            )}
+            <div>
+              <p className="font-semibold text-white">{outputItem.name}</p>
+              <p className="text-sm text-gray-400">
+                Current Price: <span className="text-green-400 font-bold">{outputItem.currentPrice?.toFixed(3) || 'N/A'} €</span>
+              </p>
+            </div>
+          </div>
+        )}
 
         {profit && (
           <div className="grid md:grid-cols-2 gap-4">
@@ -152,16 +151,16 @@ export default function CompanyDetail() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-300">Revenue:</span>
-                  <span className="text-green-400">${profit.scenarioA.revenue.toFixed(2)}</span>
+                  <span className="text-green-400">{profit.scenarioA.revenue.toFixed(3)} €</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-300">Costs:</span>
-                  <span className="text-red-400">${profit.scenarioA.costs.toFixed(2)}</span>
+                  <span className="text-red-400">{profit.scenarioA.costs.toFixed(3)} €</span>
                 </div>
                 <div className="flex justify-between font-bold border-t border-gray-700 pt-2">
                   <span className="text-gray-300">Profit/PP:</span>
                   <span className={profit.scenarioA.profit > 0 ? 'text-green-400' : 'text-red-400'}>
-                    ${profit.scenarioA.profitPerPP.toFixed(2)}
+                    {profit.scenarioA.profitPerPP.toFixed(3)} €
                   </span>
                 </div>
               </div>
@@ -173,16 +172,16 @@ export default function CompanyDetail() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-gray-300">Revenue:</span>
-                    <span className="text-green-400">${profit.scenarioB.revenue.toFixed(2)}</span>
+                    <span className="text-green-400">{profit.scenarioB.revenue.toFixed(3)} €</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-300">Costs:</span>
-                    <span className="text-red-400">${profit.scenarioB.costs.toFixed(2)}</span>
+                    <span className="text-red-400">{profit.scenarioB.costs.toFixed(3)} €</span>
                   </div>
                   <div className="flex justify-between font-bold border-t border-gray-700 pt-2">
                     <span className="text-gray-300">Profit/PP:</span>
                     <span className={profit.scenarioB.profit > 0 ? 'text-green-400' : 'text-red-400'}>
-                      ${profit.scenarioB.profitPerPP.toFixed(2)}
+                      {profit.scenarioB.profitPerPP.toFixed(3)} €
                     </span>
                   </div>
                 </div>

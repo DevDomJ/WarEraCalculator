@@ -93,18 +93,14 @@ export default function CompaniesList() {
                 <p className="text-lg font-bold text-white">{company.workers}</p>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-4 mt-4">
+            <div className="grid grid-cols-2 gap-4 mt-4">
               <div>
                 <p className="text-sm text-gray-400">Wage/Worker</p>
-                <p className="font-semibold text-gray-200">${company.wagePerWorker.toFixed(2)}</p>
+                <p className="font-semibold text-gray-200">{company.wagePerWorker.toFixed(3)} €</p>
               </div>
               <div>
                 <p className="text-sm text-gray-400">Production Value</p>
                 <p className="font-semibold text-gray-200">{company.productionValue.toFixed(2)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">Energy Cost</p>
-                <p className="font-semibold text-gray-200">{company.energyConsumption}</p>
               </div>
             </div>
           </div>
