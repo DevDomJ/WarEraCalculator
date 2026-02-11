@@ -116,7 +116,14 @@ WarEraApplication/
 │   │   │   └── client.ts         # API client
 │   │   ├── pages/
 │   │   │   ├── GoodsOverview.tsx # Market overview
-│   │   │   └── ItemDetail.tsx    # Item detail with charts
+│   │   │   ├── ItemDetail.tsx    # Item detail with charts
+│   │   │   ├── CompaniesList.tsx # Companies list
+│   │   │   └── CompanyDetail.tsx # Company detail
+│   │   ├── components/
+│   │   │   ├── ProductionTracker.tsx
+│   │   │   └── ProductionHistoryChart.tsx
+│   │   ├── utils/
+│   │   │   └── itemNames.ts      # Item name mappings
 │   │   ├── App.tsx
 │   │   └── main.tsx
 │   └── package.json
@@ -143,18 +150,28 @@ WarEraApplication/
 ### Phase 3: REST API ✅
 - GET /api/items - List all items with current prices
 - GET /api/items/:code - Get single item details
-- GET /api/prices/:itemCode - Get price history
+- GET /api/prices/:itemCode?days=X - Get price history with volume and order data
 - GET /api/prices/:itemCode/orders - Get current orders
 
 ### Phase 4: Frontend - Market Overview ✅
-- Goods overview page with all items
-- Item cards with icons and current prices
+- Goods overview page with category organization (Cases, Craft, Buffs, Ammo, Food, Construction)
+- Equipment view toggle (separate from wares)
+- Item cards with icons, display names, and current prices
 - Navigation to item details
+- Responsive grid layout (up to 6 columns on large screens)
 
 ### Phase 5: Frontend - Item Detail ✅
-- Item detail page with price chart
-- 30-day price history visualization
+- Item detail page with interactive charts
+- Time interval selection (Day, Week, 2 Weeks, Month)
+- Price history chart with toggleable lines:
+  - Average price
+  - Highest buy order
+  - Lowest sell order
+- Trade volume bar chart
+- Dynamic X-axis formatting (time-based for day view, dates for longer periods)
+- 15-minute aggregation for day view
 - Buy/sell orders tables
+- Proper item display names matching in-game terminology
 
 ### Phase 6: Company Management Backend ✅
 - Company API integration (fetch by userId)

@@ -24,8 +24,8 @@ export class DataCollectionService {
     
     try {
       await this.gameConfig.fetchAndCacheGameConfig();
-      await this.marketPrice.fetchAndStorePrices();
       await this.tradingOrder.fetchAndStoreOrders();
+      await this.marketPrice.fetchAndStorePrices();
       
       this.logger.log('Data collection completed successfully');
     } catch (error) {
