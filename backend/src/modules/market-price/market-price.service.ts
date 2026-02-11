@@ -40,6 +40,9 @@ export class MarketPriceService {
               data: {
                 itemCode,
                 price,
+                volume,
+                highestBuy,
+                lowestSell,
                 timestamp,
               },
             });
