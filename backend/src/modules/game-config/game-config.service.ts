@@ -37,8 +37,11 @@ export class GameConfigService implements OnModuleInit {
       this.logger.log('Fetching game configuration...');
       const config = await this.apiService.request<any>('gameConfig.getGameConfig');
       
-      if (config?.result?.data?.items) {
-        const items = config.result.data.items;
+      // Handle batch response format (array with single element)
+      const data = Array.isArray(config) ? config[0] : config;
+      
+      if (data?.result?.data?.items) {
+        const items = data.result.data.items;
         
         // Handle both object and array formats
         const itemsArray = Array.isArray(items) 
@@ -50,6 +53,8 @@ export class GameConfigService implements OnModuleInit {
           name: item.name || item.displayName || item.code || item.id,
           icon: item.icon || item.iconUrl || null,
           order: index,
+          productionPoints: item.productionPoints,
+          productionNeeds: item.productionNeeds,
         }));
 
         await this.saveItemsToDatabase(this.itemsCache);
@@ -65,8 +70,17 @@ export class GameConfigService implements OnModuleInit {
     for (const item of items) {
       await this.prisma.item.upsert({
         where: { code: item.code },
-        update: { name: item.name, icon: item.icon, order: item.order },
-        create: item,
+        update: { 
+          name: item.name, 
+          icon: item.icon, 
+          order: item.order,
+          productionPoints: item.productionPoints,
+          productionNeeds: item.productionNeeds ? JSON.stringify(item.productionNeeds) : null,
+        },
+        create: {
+          ...item,
+          productionNeeds: item.productionNeeds ? JSON.stringify(item.productionNeeds) : null,
+        },
       });
     }
   }
@@ -74,12 +88,20 @@ export class GameConfigService implements OnModuleInit {
   async getItems(): Promise<GameItem[]> {
     if (this.itemsCache.length === 0) {
       const items = await this.prisma.item.findMany({ orderBy: { order: 'asc' } });
-      this.itemsCache = items;
+      this.itemsCache = items.map(item => ({
+        ...item,
+        productionNeeds: item.productionNeeds ? JSON.parse(item.productionNeeds) : undefined,
+      }));
     }
     return this.itemsCache;
   }
 
   async getItemByCode(code: string): Promise<GameItem | null> {
-    return this.prisma.item.findUnique({ where: { code } });
+    const item = await this.prisma.item.findUnique({ where: { code } });
+    if (!item) return null;
+    return {
+      ...item,
+      productionNeeds: item.productionNeeds ? JSON.parse(item.productionNeeds) : undefined,
+    };
   }
 }
