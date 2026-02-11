@@ -42,6 +42,16 @@ cd ../frontend
 npm install
 ```
 
+### 4. Add Item Icons
+
+Item icons are not included in this repository due to copyright. You need to obtain them from the WarEra game:
+
+1. Create the icons directory: `mkdir -p frontend/public/icons`
+2. Download or extract item icons from WarEra
+3. Place PNG files named by item code (e.g., `bread.png`, `steel.png`) in `frontend/public/icons/`
+
+The application will work without icons, but they will be hidden.
+
 ## Development
 
 ### Start Backend (Terminal 1)

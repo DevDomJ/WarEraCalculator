@@ -42,5 +42,9 @@ coverage/
 *.db
 *.db-journal
 
+# Icons (not redistributable - see README for instructions)
+frontend/public/icons/
+!frontend/public/icons/.gitkeep
+
 # PM2
 .pm2/
