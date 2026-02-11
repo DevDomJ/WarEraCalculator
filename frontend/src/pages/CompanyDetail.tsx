@@ -214,7 +214,7 @@ export default function CompanyDetail() {
           </div>
         )}
 
-        {profit && (
+        {profit && profit.scenarioA.breakdown.inputCosts.length > 0 && (
           <div className="grid md:grid-cols-2 gap-4">
             <div className="border border-gray-700 rounded p-4">
               <h4 className="font-bold mb-2 text-white">Scenario A: Buy Inputs</h4>
@@ -224,7 +224,7 @@ export default function CompanyDetail() {
                   <span className="text-green-400">{profit.scenarioA.revenue.toFixed(3)} €</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-300">Costs:</span>
+                  <span className="text-gray-300">Costs (Inputs + Wages):</span>
                   <span className="text-red-400">{profit.scenarioA.costs.toFixed(3)} €</span>
                 </div>
                 <div className="flex justify-between font-bold border-t border-gray-700 pt-2">
