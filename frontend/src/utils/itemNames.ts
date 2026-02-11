@@ -4,7 +4,7 @@ export const ITEM_NAMES: Record<string, string> = {
   livestock: 'Livestock',
   fish: 'Fish',
   iron: 'Iron',
-  coca: 'Mysterious Plant',
+  coca: 'Mystery Plant',
   lead: 'Lead',
   petroleum: 'Petroleum',
   concrete: 'Concrete',
