@@ -156,6 +156,35 @@ X-API-Key: YOUR_API_TOKEN
 
 ---
 
+## Party Endpoints
+
+### Get Party by ID
+**Endpoint:** `/party.getById`  
+**Operation ID:** `party.getById`  
+**Description:** Retrieves detailed information about a political party, including ethics levels
+
+**Request Body:**
+```json
+{
+  "partyId": "string" // Required: The unique identifier of the party
+}
+```
+
+**Response Fields:**
+- `name` - Party name
+- `description` - Party description
+- `country` - Country ID where the party is located
+- `leader` - User ID of the party leader
+- `rulingParty` - Boolean indicating if this is the ruling party
+- `ethics` - Object containing ethics levels:
+  - `militarism` - Militarism ethic level (0-2)
+  - `isolationism` - Isolationism ethic level (0-2)
+  - `imperialism` - Imperialism ethic level (0-2)
+  - `industrialism` - Industrialism ethic level (0-2, grants production bonus to Ammo & Construction)
+  - `agrarianism` - Agrarianism ethic level (0-2, grants production bonus to agricultural goods)
+
+---
+
 ## Company Endpoints
 
 ### Get Company by ID

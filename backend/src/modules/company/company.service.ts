@@ -2,6 +2,21 @@ import { Injectable, Logger } from '@nestjs/common';
 import { WarEraApiService } from '../warera-api/warera-api.service';
 import { PrismaService } from '../../prisma.service';
 
+export interface ProductionBonusBreakdown {
+  total: number;
+  country?: {
+    bonus: number;
+    countryName: string;
+    countryCode: string;
+    specializedItem: string;
+  };
+  party?: {
+    bonus: number;
+    partyName: string;
+    ethicName: string;
+  };
+}
+
 export interface CompanyData {
   companyId: string;
   userId: string;
@@ -14,6 +29,7 @@ export interface CompanyData {
   workers?: WorkerData[];
   lastFetched?: Date;
   totalDailyWage?: number;
+  productionBonus?: ProductionBonusBreakdown;
 }
 
 export interface WorkerData {

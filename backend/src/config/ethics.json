@@ -1,0 +1,73 @@
+{
+  "ethics": {
+    "industrialism": {
+      "name": "Fanatic Industrialist",
+      "description": "Grants production bonus to industrial goods",
+      "levels": [
+        {
+          "level": 1,
+          "bonuses": [
+            {
+              "type": "production",
+              "value": 15,
+              "appliesTo": {
+                "categories": ["Ammo", "Construction"]
+              }
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "bonuses": [
+            {
+              "type": "production",
+              "value": 30,
+              "appliesTo": {
+                "categories": ["Ammo", "Construction"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "agrarianism": {
+      "name": "Fanatic Agrarian",
+      "description": "Grants production bonus to agricultural goods",
+      "levels": [
+        {
+          "level": 1,
+          "bonuses": [
+            {
+              "type": "production",
+              "value": 15,
+              "appliesTo": {
+                "items": ["grain", "mysteriousPlant", "livestock", "fish"]
+              }
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "bonuses": [
+            {
+              "type": "production",
+              "value": 30,
+              "appliesTo": {
+                "items": ["grain", "mysteriousPlant", "livestock", "fish"]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "bonusTypes": {
+    "production": "Production bonus percentage",
+    "tax": "Tax income bonus percentage",
+    "development": "Development bonus percentage",
+    "battleDefense": "Battle bonus in defense",
+    "battleAttack": "Battle bonus in attack",
+    "battleAlly": "Battle bonus when fighting for allies",
+    "battleEnemy": "Battle bonus when fighting sworn enemies"
+  }
+}

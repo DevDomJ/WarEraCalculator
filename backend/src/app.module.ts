@@ -13,6 +13,8 @@ import { DataCollectionModule } from './modules/data-collection/data-collection.
 import { CompanyModule } from './modules/company/company.module';
 import { ProductionCalculatorModule } from './modules/production-calculator/production-calculator.module';
 import { ProductionAnalyticsModule } from './modules/production-analytics/production-analytics.module';
+import { EthicsModule } from './modules/ethics/ethics.module';
+import { ProductionBonusModule } from './modules/production-bonus/production-bonus.module';
 
 @Module({
   imports: [
@@ -29,6 +31,8 @@ import { ProductionAnalyticsModule } from './modules/production-analytics/produc
     CompanyModule,
     ProductionCalculatorModule,
     ProductionAnalyticsModule,
+    EthicsModule,
+    ProductionBonusModule,
   ],
   providers: [PrismaService],
   exports: [PrismaService],
