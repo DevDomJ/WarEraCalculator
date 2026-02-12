@@ -30,6 +30,25 @@ export class CompanyController {
     );
   }
 
+  @Post('user/:userId/refresh')
+  async refreshCompaniesByUser(@Param('userId') userId: string) {
+    // Refetch from API to update database
+    await this.companyService.fetchCompaniesByUserId(userId);
+    // Return updated companies with fresh production bonus
+    const companies = await this.companyService.getCompaniesByUserId(userId);
+    
+    return Promise.all(
+      companies.map(async (company) => {
+        const productionBonus = await this.productionBonusService.calculateProductionBonus(
+          company.region,
+          company.type,
+          true, // Force refresh
+        );
+        return { ...company, productionBonus };
+      })
+    );
+  }
+
   @Get(':id')
   async getCompany(@Param('id') id: string) {
     const company = await this.companyService.getCompanyById(id);
@@ -52,8 +71,17 @@ export class CompanyController {
     }
     // Refetch from API to update database
     await this.companyService.fetchCompaniesByUserId(company.userId);
-    // Return updated company from database with production bonus
-    return this.getCompany(id);
+    // Return updated company from database with fresh production bonus
+    const updatedCompany = await this.companyService.getCompanyById(id);
+    if (!updatedCompany) return null;
+    
+    const productionBonus = await this.productionBonusService.calculateProductionBonus(
+      updatedCompany.region,
+      updatedCompany.type,
+      true, // Force refresh
+    );
+    
+    return { ...updatedCompany, productionBonus };
   }
 
   @Post('reorder')

@@ -128,7 +128,7 @@ export default function CompaniesList() {
   }
 
   const fetchMutation = useMutation({
-    mutationFn: (uid: string) => companyApi.fetchByUserId(uid),
+    mutationFn: (uid: string) => companyApi.refreshByUserId(uid),
     onSuccess: () => refetch(),
   })
 
