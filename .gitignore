@@ -55,3 +55,6 @@ frontend/public/icons/
 
 # Chat conversations
 chats/
+
+# Production deployment documentation (contains private paths)
+PRODUCTION_DEPLOY.md

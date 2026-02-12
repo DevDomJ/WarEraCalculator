@@ -16,37 +16,39 @@ WarEra Calculator - A web application for tracking and visualizing market prices
 - **Backend**: Runs on port 3000 (default)
 - **Database**: `backend/prisma/dev.db`
 - **Start**: `cd backend && npm run start:dev`
-- **Lifecycle**: Started when user begins work (~10 AM), stopped when user stops (~1 AM)
+- **Lifecycle**: Started when user begins work, stopped when user stops
 
 ### Production Environment
 - **Backend**: Runs on port 4000
-- **Database**: `backend/prisma/prod.db`
-- **Start**: `cd backend && PORT=4000 DATABASE_URL="file:./prisma/prod.db" npm run start:prod`
+- **Database**: Separate isolated location (see PRODUCTION_DEPLOY.md - not in repo)
 - **Lifecycle**: Runs 24/7, collects data continuously
 
-**CRITICAL**: Both environments can and should run simultaneously. Never stop production to work on dev.
+**CRITICAL**: 
+- Development and production are COMPLETELY ISOLATED in separate directories
+- Production location is documented in PRODUCTION_DEPLOY.md (private, not committed)
+- NEVER touch production directory except during explicit deployment
+- Both environments can and should run simultaneously
 
 ## Deployment Rules
 
 ### Production Deployment Process
 
-1. **Build the code**:
+**CRITICAL**: Production location is documented in PRODUCTION_DEPLOY.md (private file, not in repo). NEVER touch production except during explicit deployment!
+
+1. **Build the code** (in dev directory):
    ```bash
-   cd backend && npm run build
+   cd backend
+   npm run build
    ```
 
-2. **Restart the production server** (code only):
-   ```bash
-   # Kill old process, start new one with built code
-   PORT=4000 DATABASE_URL="file:./prisma/prod.db" npm run start:prod
-   ```
+2. **Deploy to production**: See PRODUCTION_DEPLOY.md for detailed instructions
 
 3. **What to deploy**: ONLY the `dist/` folder (compiled code)
 
 4. **What to NEVER touch**:
-   - ❌ `backend/prisma/prod.db` - Production database
+   - ❌ Production database file
    - ❌ Any database files
-   - ❌ Environment variables that point to databases
+   - ❌ Production directory (except during deployment)
 
 ### Database Operations
 
@@ -65,6 +67,8 @@ WarEra Calculator - A web application for tracking and visualizing market prices
 
 **Incident 2026-02-12**: An agent copied `dev.db` over `prod.db` during deployment, destroying 17 hours of irreplaceable production data (01:30 AM - 18:48 PM). The dev database had a gap because dev servers were offline overnight, while production ran continuously collecting data.
 
+**Solution**: Production is now completely isolated with its own database, dependencies, and environment. The development directory is never used for production.
+
 **Lesson**: Database files are NOT part of deployment. They are persistent data stores that must never be touched during code deployments.
 
 ## Common Tasks
@@ -79,15 +83,14 @@ cd frontend && npm run dev
 ```
 
 ### Deploying to Production
-```bash
-# 1. Build
-cd backend && npm run build
 
-# 2. Restart production (keeps same database)
-# Find PID: ps aux | grep "node dist/main"
-kill <PID>
-PORT=4000 DATABASE_URL="file:./prisma/prod.db" nohup npm run start:prod > /tmp/backend-prod.log 2>&1 &
-```
+See PRODUCTION_DEPLOY.md for detailed deployment instructions (private file, not in repo).
+
+**Summary:**
+1. Build code in dev directory
+2. Copy `dist/` folder to production
+3. Restart production server
+4. NEVER touch database files
 
 ### Database Migrations
 ```bash
@@ -106,12 +109,11 @@ backend/
 ├── src/               # Source code
 ├── prisma/
 │   ├── dev.db        # Dev database (has gaps when dev is offline)
-│   ├── prod.db       # Production database (runs 24/7)
+│   ├── prod.db       # DEPRECATED - do not use
 │   └── schema.prisma # Database schema
-frontend/
-├── dist/              # Built frontend
-├── src/               # Source code
 ```
+
+Production structure is documented in PRODUCTION_DEPLOY.md (not in repo).
 
 ## Data Collection
 

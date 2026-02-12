@@ -80,8 +80,18 @@ export default function CompanyDetail() {
   if (!company) return <div className="text-gray-300">Loading...</div>
 
   const workers = company.workers || [];
-  const wages = workers.map((w: any) => w.wage);
-  const totalDailyWage = wages.reduce((sum: number, wage: number) => sum + wage, 0);
+  
+  // Each worker regenerates 10% of max energy per hour = 2.4 * maxEnergy per day
+  // Worker produces: energy * (production / 10) production points per day
+  // Worker is paid: wage * production points (wage is per PP)
+  const totalDailyWage = workers.reduce((sum: number, w: any) => {
+    const maxEnergy = w.maxEnergy || 70;
+    const production = w.production || 0;
+    const energyPerDay = maxEnergy * 0.1 * 24; // 10% regen per hour * 24 hours
+    const ppPerDay = (energyPerDay / 10) * production; // 10 energy per work action
+    return sum + (w.wage * ppPerDay);
+  }, 0);
+  
   const maxEnergy = 70
   const actionsPerDay = maxEnergy * 0.24
   const ppPerWork = (company.productionValue || 0) * (1 + productionBonus)
@@ -121,7 +131,7 @@ export default function CompanyDetail() {
           <div>
             <p className="text-sm text-gray-400">Current Production</p>
             <p className="text-xl font-bold text-white">
-              {(company.productionValue || 0).toFixed(0)} / {company.maxProduction || 0}
+              {(company.productionValue || 0).toFixed(1)} / {company.maxProduction || 0}
             </p>
           </div>
         </div>

@@ -74,7 +74,7 @@ function SortableCompanyCard({ company }: { company: Company }) {
           <div>
             <p className="text-sm text-gray-400">Current Production</p>
             <p className="font-semibold text-gray-200">
-              {company.productionValue.toFixed(0)} / {company.maxProduction}
+              {company.productionValue.toFixed(1)} / {company.maxProduction}
             </p>
           </div>
         </div>

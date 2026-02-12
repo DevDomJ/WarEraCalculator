@@ -108,7 +108,16 @@ export class ProductionCalculatorService {
     const outputPrice = await this.getLatestPrice(outputItemCode);
     
     const workers = company.workers || [];
-    const totalDailyWage = workers.reduce((sum, w) => sum + w.wage, 0);
+    // Each worker regenerates 10% of max energy per hour = 2.4 * maxEnergy per day
+    // Worker produces: energy * (production / 10) production points per day (without bonuses)
+    // Worker is paid: wage * production points (wage is per PP)
+    const totalDailyWage = workers.reduce((sum, w) => {
+      const maxEnergy = w.maxEnergy || 70;
+      const production = w.production || 0;
+      const energyPerDay = maxEnergy * 0.1 * 24; // 10% regen per hour * 24 hours
+      const ppPerDay = (energyPerDay / 10) * production; // 10 energy per work action
+      return sum + (w.wage * ppPerDay);
+    }, 0);
     const wagePerPP = totalDailyWage / metrics.totalProductionPointsPerDay;
 
     // Calculate how many items produced per PP
