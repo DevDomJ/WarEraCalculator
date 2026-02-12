@@ -7,9 +7,11 @@ const api = axios.create({
 export interface Item {
   code: string
   name: string
+  displayName?: string
   icon?: string
   order: number
   currentPrice?: number
+  category?: string
 }
 
 export interface PriceHistory {
@@ -41,6 +43,21 @@ export interface Worker {
   production?: number
 }
 
+export interface ProductionBonusBreakdown {
+  total: number
+  country?: {
+    bonus: number
+    countryName: string
+    countryCode: string
+    specializedItem: string
+  }
+  party?: {
+    bonus: number
+    partyName: string
+    ethicName: string
+  }
+}
+
 export interface Company {
   companyId: string
   userId: string
@@ -53,6 +70,7 @@ export interface Company {
   lastFetched?: string
   workers?: Worker[]
   totalDailyWage?: number
+  productionBonus?: ProductionBonusBreakdown
 }
 
 export interface ProductionMetrics {

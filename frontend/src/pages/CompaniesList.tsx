@@ -5,8 +5,8 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { companyApi, Company } from '../api/client'
-import { ITEM_NAMES } from '../utils/itemNames'
 import ItemIcon from '../components/ItemIcon'
+import ProductionBonusTooltip from '../components/ProductionBonusTooltip'
 
 function SortableCompanyCard({ company }: { company: Company }) {
   const navigate = useNavigate()
@@ -50,7 +50,7 @@ function SortableCompanyCard({ company }: { company: Company }) {
             <ItemIcon code={company.type} size="md" />
             <div>
               <h3 className="text-xl font-bold text-white">{company.name}</h3>
-              <p className="text-gray-400">{ITEM_NAMES[company.type] || company.type} • {company.region}</p>
+              <p className="text-gray-400">{company.type} • {company.region}</p>
             </div>
           </div>
           <div className="text-right">
@@ -58,7 +58,7 @@ function SortableCompanyCard({ company }: { company: Company }) {
             <p className="text-lg font-bold text-white">{workers.length}</p>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4 mt-4">
+        <div className="grid grid-cols-3 gap-4 mt-4">
           <div>
             <p className="text-sm text-gray-400">Wage/Worker</p>
             <p className="font-semibold text-gray-200">
@@ -72,6 +72,18 @@ function SortableCompanyCard({ company }: { company: Company }) {
             <p className="font-semibold text-gray-200">
               {company.productionValue.toFixed(1)} / {company.maxProduction}
             </p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-400">Production Bonus</p>
+            {company.productionBonus ? (
+              <ProductionBonusTooltip bonus={company.productionBonus}>
+                <p className="font-semibold text-green-400 cursor-help">
+                  +{company.productionBonus.total.toFixed(1)}%
+                </p>
+              </ProductionBonusTooltip>
+            ) : (
+              <p className="font-semibold text-gray-500">N/A</p>
+            )}
           </div>
         </div>
       </div>

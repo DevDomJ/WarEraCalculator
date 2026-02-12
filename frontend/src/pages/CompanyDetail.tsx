@@ -5,6 +5,7 @@ import { companyApi, productionApi, itemsApi } from '../api/client'
 import ItemIcon from '../components/ItemIcon'
 import ProductionTracker from '../components/ProductionTracker'
 import ProductionHistoryChart from '../components/ProductionHistoryChart'
+import ProductionBonusTooltip from '../components/ProductionBonusTooltip'
 
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>()
@@ -87,10 +88,15 @@ export default function CompanyDetail() {
       </div>
 
       <div className="bg-gray-800 rounded-lg shadow p-6 mb-6">
-        <h2 className="text-3xl font-bold mb-2 text-white">{company.name}</h2>
-        <p className="text-gray-400 mb-4">{company.type} • {company.region}</p>
+        <div className="flex items-center gap-3 mb-4">
+          <ItemIcon code={company.type} size="lg" displayName={outputItem?.displayName} />
+          <div>
+            <h2 className="text-3xl font-bold text-white">{company.name}</h2>
+            <p className="text-gray-400">{company.type} • {company.region}</p>
+          </div>
+        </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           <div>
             <p className="text-sm text-gray-400">Workers</p>
             <p className="text-xl font-bold text-white">{workers.length}</p>
@@ -98,6 +104,18 @@ export default function CompanyDetail() {
           <div>
             <p className="text-sm text-gray-400">Total Daily Wage</p>
             <p className="text-xl font-bold text-white">{(company.totalDailyWage || 0).toFixed(3)} €</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-400">Production Bonus</p>
+            {company.productionBonus ? (
+              <ProductionBonusTooltip bonus={company.productionBonus}>
+                <p className="text-xl font-bold text-green-400 cursor-help">
+                  +{company.productionBonus.total.toFixed(1)}%
+                </p>
+              </ProductionBonusTooltip>
+            ) : (
+              <p className="text-xl font-bold text-gray-500">0%</p>
+            )}
           </div>
           <div>
             <p className="text-sm text-gray-400">Current Production</p>
@@ -197,7 +215,7 @@ export default function CompanyDetail() {
         
         {outputItem && (
           <div className="mb-4 p-3 bg-gray-700 rounded">
-            <ItemIcon code={company.type} size="sm" showName />
+            <ItemIcon code={company.type} size="sm" showName displayName={outputItem.displayName} />
             <p className="text-sm text-gray-400 mt-2">
               Current Price: <span className="text-green-400 font-bold">{outputItem.currentPrice?.toFixed(3) || 'N/A'} €</span>
             </p>
