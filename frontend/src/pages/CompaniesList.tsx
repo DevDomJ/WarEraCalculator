@@ -84,7 +84,6 @@ function SortableCompanyCard({ company }: { company: Company }) {
 }
 
 export default function CompaniesList() {
-  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [userId, setUserId] = useState(localStorage.getItem('userId') || '')
   const [inputUserId, setInputUserId] = useState('')

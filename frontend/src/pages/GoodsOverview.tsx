@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { itemsApi } from '../api/client'
-import { ITEM_NAMES, ITEM_CATEGORIES, CATEGORY_ORDER } from '../utils/itemNames'
+import { ITEM_NAMES, ITEM_CATEGORIES } from '../utils/itemNames'
 
 export default function GoodsOverview() {
   const navigate = useNavigate()

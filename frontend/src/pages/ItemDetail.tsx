@@ -121,7 +121,7 @@ export default function ItemDetail() {
   if (!item) return <div className="text-gray-300">Loading...</div>
 
   const handleLegendClick = (dataKey: string) => {
-    setVisibleLines(prev => ({ ...prev, [dataKey]: !prev[dataKey] }))
+    setVisibleLines(prev => ({ ...prev, [dataKey]: !prev[dataKey as keyof typeof prev] }))
   }
 
   const renderLegend = (props: any) => {

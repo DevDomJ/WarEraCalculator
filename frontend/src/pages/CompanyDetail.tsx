@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { companyApi, productionApi, itemsApi } from '../api/client'
 import { ITEM_NAMES } from '../utils/itemNames'
 import ProductionTracker from '../components/ProductionTracker'
+import ProductionHistoryChart from '../components/ProductionHistoryChart'
 
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>()
@@ -34,7 +35,7 @@ export default function CompanyDetail() {
     },
   })
 
-  const { data: company, refetch } = useQuery({
+  const { data: company } = useQuery({
     queryKey: ['company', id],
     queryFn: async () => {
       const data = await companyApi.getById(id!)
@@ -61,7 +62,7 @@ export default function CompanyDetail() {
     },
     enabled: !!id,
     staleTime: 0, // Always consider data stale
-    cacheTime: 0, // Don't cache
+    gcTime: 0, // Don't cache
   })
 
   const { data: outputItem } = useQuery({
@@ -79,8 +80,8 @@ export default function CompanyDetail() {
   if (!company) return <div className="text-gray-300">Loading...</div>
 
   const workers = company.workers || [];
-  const wages = workers.map(w => w.wage);
-  const totalDailyWage = wages.reduce((sum, wage) => sum + wage, 0);
+  const wages = workers.map((w: any) => w.wage);
+  const totalDailyWage = wages.reduce((sum: number, wage: number) => sum + wage, 0);
   const maxEnergy = 70
   const actionsPerDay = maxEnergy * 0.24
   const ppPerWork = (company.productionValue || 0) * (1 + productionBonus)
@@ -129,7 +130,7 @@ export default function CompanyDetail() {
           <div className="border-t border-gray-700 pt-4">
             <h3 className="text-lg font-semibold mb-2 text-white">Workers</h3>
             <div className="space-y-2">
-              {workers.map((worker, index) => (
+              {workers.map((worker: any, index: number) => (
                 <div key={worker.workerId} className="flex items-center justify-between bg-gray-700 rounded px-3 py-2">
                   <div className="flex items-center gap-3">
                     {worker.avatarUrl && (
