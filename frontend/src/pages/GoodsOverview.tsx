@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { itemsApi } from '../api/client'
 import { ITEM_NAMES, ITEM_CATEGORIES } from '../utils/itemNames'
+import ItemIcon from '../components/ItemIcon'
 
 export default function GoodsOverview() {
   const navigate = useNavigate()
@@ -42,14 +43,7 @@ export default function GoodsOverview() {
               className="bg-gray-800 rounded-lg shadow p-4 cursor-pointer hover:shadow-lg hover:bg-gray-750 transition-all"
             >
               <div className="flex items-center gap-3">
-                <img 
-                  src={`/icons/${item.code}.png`} 
-                  alt={item.name} 
-                  className="w-12 h-12"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none'
-                  }}
-                />
+                <ItemIcon code={item.code} size="md" />
                 <div className="flex-1">
                   <h3 className="font-semibold text-white">{ITEM_NAMES[item.code] || item.name}</h3>
                   <p className="text-sm text-gray-400">{item.code}</p>
@@ -101,14 +95,7 @@ export default function GoodsOverview() {
                   className="bg-gray-800 rounded-lg shadow p-4 cursor-pointer hover:shadow-lg hover:bg-gray-750 transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <img 
-                      src={`/icons/${item.code}.png`} 
-                      alt={item.name} 
-                      className="w-12 h-12"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none'
-                      }}
-                    />
+                    <ItemIcon code={item.code} size="md" />
                     <div className="flex-1">
                       <h3 className="font-semibold text-white">{ITEM_NAMES[item.code] || item.name}</h3>
                       <p className="text-sm text-gray-400">{item.code}</p>
@@ -148,14 +135,7 @@ export default function GoodsOverview() {
                   className="bg-gray-800 rounded-lg shadow p-4 cursor-pointer hover:shadow-lg hover:bg-gray-750 transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <img 
-                      src={`/icons/${item.code}.png`} 
-                      alt={item.name} 
-                      className="w-12 h-12"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none'
-                      }}
-                    />
+                    <ItemIcon code={item.code} size="md" />
                     <div className="flex-1">
                       <h3 className="font-semibold text-white">{ITEM_NAMES[item.code] || item.name}</h3>
                       <p className="text-sm text-gray-400">{item.code}</p>

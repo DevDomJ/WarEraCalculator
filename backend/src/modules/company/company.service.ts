@@ -13,6 +13,7 @@ export interface CompanyData {
   energyConsumption: number;
   workers?: WorkerData[];
   lastFetched?: Date;
+  totalDailyWage?: number;
 }
 
 export interface WorkerData {
@@ -33,6 +34,16 @@ export class CompanyService {
     private readonly apiService: WarEraApiService,
     private readonly prisma: PrismaService,
   ) {}
+
+  calculateTotalDailyWage(workers: WorkerData[]): number {
+    return workers.reduce((sum, w) => {
+      const maxEnergy = w.maxEnergy || 70;
+      const production = w.production || 0;
+      const energyPerDay = maxEnergy * 0.1 * 24;
+      const ppPerDay = (energyPerDay / 10) * production;
+      return sum + (w.wage * ppPerDay);
+    }, 0);
+  }
 
   async fetchCompaniesByUserId(userId: string): Promise<CompanyData[]> {
     try {
@@ -238,17 +249,20 @@ export class CompanyService {
     
     if (!company) return null;
     
+    const workers = company.workers.map(w => ({
+      workerId: w.workerId,
+      userId: w.userId,
+      username: w.username,
+      avatarUrl: w.avatarUrl,
+      wage: w.wage,
+      maxEnergy: w.maxEnergy,
+      production: w.production,
+    }));
+    
     return {
       ...company,
-      workers: company.workers.map(w => ({
-        workerId: w.workerId,
-        userId: w.userId,
-        username: w.username,
-        avatarUrl: w.avatarUrl,
-        wage: w.wage,
-        maxEnergy: w.maxEnergy,
-        production: w.production,
-      })),
+      workers,
+      totalDailyWage: this.calculateTotalDailyWage(workers),
     };
   }
 
@@ -259,9 +273,8 @@ export class CompanyService {
       orderBy: { displayOrder: 'asc' }
     });
     
-    return companies.map(company => ({
-      ...company,
-      workers: company.workers.map(w => ({
+    return companies.map(company => {
+      const workers = company.workers.map(w => ({
         workerId: w.workerId,
         userId: w.userId,
         username: w.username,
@@ -269,8 +282,14 @@ export class CompanyService {
         wage: w.wage,
         maxEnergy: w.maxEnergy,
         production: w.production,
-      })),
-    }));
+      }));
+      
+      return {
+        ...company,
+        workers,
+        totalDailyWage: this.calculateTotalDailyWage(workers),
+      };
+    });
   }
 
   async updateCompanyOrder(companyIds: string[]): Promise<void> {

@@ -6,6 +6,7 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSo
 import { CSS } from '@dnd-kit/utilities'
 import { companyApi, Company } from '../api/client'
 import { ITEM_NAMES } from '../utils/itemNames'
+import ItemIcon from '../components/ItemIcon'
 
 function SortableCompanyCard({ company }: { company: Company }) {
   const navigate = useNavigate()
@@ -46,12 +47,7 @@ function SortableCompanyCard({ company }: { company: Company }) {
       <div onClick={() => navigate(`/company/${company.companyId}`)} className="cursor-pointer flex-1">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-3">
-            <img
-              src={`/icons/${company.type}.png`}
-              alt={ITEM_NAMES[company.type] || company.type}
-              className="w-12 h-12"
-              onError={(e) => { e.currentTarget.style.display = 'none' }}
-            />
+            <ItemIcon code={company.type} size="md" />
             <div>
               <h3 className="text-xl font-bold text-white">{company.name}</h3>
               <p className="text-gray-400">{ITEM_NAMES[company.type] || company.type} • {company.region}</p>

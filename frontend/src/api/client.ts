@@ -52,6 +52,7 @@ export interface Company {
   energyConsumption: number
   lastFetched?: string
   workers?: Worker[]
+  totalDailyWage?: number
 }
 
 export interface ProductionMetrics {
@@ -107,6 +108,8 @@ export const companyApi = {
     api.get<Company[]>(`/companies/user/${userId}`).then(res => res.data),
   getById: (id: string) => 
     api.get<Company>(`/companies/${id}`).then(res => res.data),
+  refresh: (id: string) =>
+    api.post<Company>(`/companies/${id}/refresh`).then(res => res.data),
   reorder: (companyIds: string[]) =>
     api.post('/companies/reorder', { companyIds }).then(res => res.data),
 }
@@ -114,8 +117,10 @@ export const companyApi = {
 export const productionApi = {
   getRecipes: () => 
     api.get('/production/recipes').then(res => res.data),
-  getMetrics: (companyId: string, params?: any) => 
-    api.get<ProductionMetrics>(`/production/${companyId}/metrics`, { params }).then(res => res.data),
+  getMetrics: (companyId: string, productionBonus?: number) => 
+    api.get<ProductionMetrics>(`/production/${companyId}/metrics`, { 
+      params: { productionBonus } 
+    }).then(res => res.data),
   calculateProfit: (companyId: string, outputItem: string, productionBonus?: number) => 
     api.get<{ scenarioA: ProfitScenario, scenarioB: ProfitScenario | null }>(
       `/production/${companyId}/profit`,

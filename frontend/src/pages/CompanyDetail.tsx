@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate } from 'react-router-dom'
 import { companyApi, productionApi, itemsApi } from '../api/client'
-import { ITEM_NAMES } from '../utils/itemNames'
+import ItemIcon from '../components/ItemIcon'
 import ProductionTracker from '../components/ProductionTracker'
 import ProductionHistoryChart from '../components/ProductionHistoryChart'
 
@@ -21,15 +21,7 @@ export default function CompanyDetail() {
   }
 
   const refreshMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch(`http://localhost:3000/api/companies/${id}/refresh`, {
-        method: 'POST'
-      })
-      if (!response.ok) {
-        throw new Error('Refresh failed')
-      }
-      return response.json()
-    },
+    mutationFn: () => companyApi.refresh(id!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['company', id] })
     },
@@ -39,36 +31,31 @@ export default function CompanyDetail() {
     queryKey: ['company', id],
     queryFn: async () => {
       const data = await companyApi.getById(id!)
-      // If cache is old, trigger refresh
       if (shouldRefetch(data.lastFetched)) {
-        console.log('Cache is old, refreshing...', data.lastFetched)
         try {
-          const response = await fetch(`http://localhost:3000/api/companies/${id}/refresh`, {
-            method: 'POST'
-          })
-          if (!response.ok) {
-            console.error('Refresh failed with status:', response.status)
-            return data
-          }
-          const refreshed = await response.json()
-          console.log('Refreshed data:', refreshed)
-          return refreshed
+          return await companyApi.refresh(id!)
         } catch (e) {
           console.error('Refresh failed:', e)
-          return data // Fallback to cached data
+          return data
         }
       }
       return data
     },
     enabled: !!id,
-    staleTime: 0, // Always consider data stale
-    gcTime: 0, // Don't cache
+    staleTime: 0,
+    gcTime: 0,
   })
 
   const { data: outputItem } = useQuery({
     queryKey: ['item', company?.type],
     queryFn: () => itemsApi.getByCode(company!.type),
     enabled: !!company?.type,
+  })
+
+  const { data: metrics } = useQuery({
+    queryKey: ['metrics', id, productionBonus],
+    queryFn: () => productionApi.getMetrics(id!, productionBonus),
+    enabled: !!id,
   })
 
   const { data: profit } = useQuery({
@@ -79,23 +66,7 @@ export default function CompanyDetail() {
 
   if (!company) return <div className="text-gray-300">Loading...</div>
 
-  const workers = company.workers || [];
-  
-  // Each worker regenerates 10% of max energy per hour = 2.4 * maxEnergy per day
-  // Worker produces: energy * (production / 10) production points per day
-  // Worker is paid: wage * production points (wage is per PP)
-  const totalDailyWage = workers.reduce((sum: number, w: any) => {
-    const maxEnergy = w.maxEnergy || 70;
-    const production = w.production || 0;
-    const energyPerDay = maxEnergy * 0.1 * 24; // 10% regen per hour * 24 hours
-    const ppPerDay = (energyPerDay / 10) * production; // 10 energy per work action
-    return sum + (w.wage * ppPerDay);
-  }, 0);
-  
-  const maxEnergy = 70
-  const actionsPerDay = maxEnergy * 0.24
-  const ppPerWork = (company.productionValue || 0) * (1 + productionBonus)
-  const totalPP = actionsPerDay * ppPerWork
+  const workers = company.workers || []
 
   return (
     <div>
@@ -126,7 +97,7 @@ export default function CompanyDetail() {
           </div>
           <div>
             <p className="text-sm text-gray-400">Total Daily Wage</p>
-            <p className="text-xl font-bold text-white">{totalDailyWage.toFixed(3)} €</p>
+            <p className="text-xl font-bold text-white">{(company.totalDailyWage || 0).toFixed(3)} €</p>
           </div>
           <div>
             <p className="text-sm text-gray-400">Current Production</p>
@@ -179,7 +150,7 @@ export default function CompanyDetail() {
 
       {showAnalytics && (
         <div className="space-y-6 mb-6">
-          <ProductionTracker companyId={id!} expectedPP={totalPP} />
+          <ProductionTracker companyId={id!} expectedPP={metrics?.totalProductionPointsPerDay || 0} />
           <ProductionHistoryChart companyId={id!} days={30} />
         </div>
       )}
@@ -198,52 +169,38 @@ export default function CompanyDetail() {
           />
         </div>
 
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-gray-300">PP per Work:</span>
-            <span className="font-bold text-white">{ppPerWork.toFixed(2)}</span>
-          </div>
-          <p className="text-sm text-gray-400 italic">
-            {company.productionValue} × (1 + {productionBonus}) = {ppPerWork.toFixed(2)}
-          </p>
+        {metrics && (
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-300">PP per Work:</span>
+              <span className="font-bold text-white">{metrics.productionPointsPerWork?.toFixed(2) || '0.00'}</span>
+            </div>
+            <p className="text-sm text-gray-400 italic">{metrics.formula?.ppPerWork || ''}</p>
 
-          <div className="flex justify-between items-center">
-            <span className="text-gray-300">Work Actions/Day:</span>
-            <span className="font-bold text-white">{actionsPerDay.toFixed(2)}</span>
-          </div>
-          <p className="text-sm text-gray-400 italic">
-            {maxEnergy} × 0.24 = {actionsPerDay.toFixed(2)}
-          </p>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-300">Work Actions/Day:</span>
+              <span className="font-bold text-white">{metrics.workActionsPerDay?.toFixed(2) || '0.00'}</span>
+            </div>
+            <p className="text-sm text-gray-400 italic">{metrics.formula?.actionsPerDay || ''}</p>
 
-          <div className="flex justify-between items-center">
-            <span className="text-gray-300">Total PP/Day:</span>
-            <span className="font-bold text-white">{totalPP.toFixed(2)}</span>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-300">Total PP/Day:</span>
+              <span className="font-bold text-white">{metrics.totalProductionPointsPerDay?.toFixed(2) || '0.00'}</span>
+            </div>
+            <p className="text-sm text-gray-400 italic">{metrics.formula?.totalPP || ''}</p>
           </div>
-          <p className="text-sm text-gray-400 italic">
-            {actionsPerDay.toFixed(2)} × {ppPerWork.toFixed(2)} = {totalPP.toFixed(2)}
-          </p>
-        </div>
+        )}
       </div>
 
       <div className="bg-gray-800 rounded-lg shadow p-6">
         <h3 className="text-xl font-bold mb-4 text-white">Profit Calculator</h3>
         
         {outputItem && (
-          <div className="mb-4 flex items-center gap-3 p-3 bg-gray-700 rounded">
-            <img 
-              src={`/icons/${company.type}.png`} 
-              alt={ITEM_NAMES[company.type] || company.type} 
-              className="w-10 h-10"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none'
-              }}
-            />
-            <div>
-              <p className="font-semibold text-white">{ITEM_NAMES[company.type] || company.type}</p>
-              <p className="text-sm text-gray-400">
-                Current Price: <span className="text-green-400 font-bold">{outputItem.currentPrice?.toFixed(3) || 'N/A'} €</span>
-              </p>
-            </div>
+          <div className="mb-4 p-3 bg-gray-700 rounded">
+            <ItemIcon code={company.type} size="sm" showName />
+            <p className="text-sm text-gray-400 mt-2">
+              Current Price: <span className="text-green-400 font-bold">{outputItem.currentPrice?.toFixed(3) || 'N/A'} €</span>
+            </p>
           </div>
         )}
 
