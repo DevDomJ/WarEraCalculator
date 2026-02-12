@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { itemsApi } from '../api/client'
-import { ITEM_NAMES, ITEM_CATEGORIES } from '../utils/itemNames'
 import ItemIcon from '../components/ItemIcon'
 
 export default function GoodsOverview() {
@@ -17,12 +16,7 @@ export default function GoodsOverview() {
   if (error) return <div className="text-center py-8 text-red-400">Error loading items</div>
 
   if (showEquipment) {
-    const equipmentItems = items?.filter(item => 
-      ITEM_CATEGORIES.Equipment?.includes(item.code)
-    ).sort((a, b) => {
-      const codes = ITEM_CATEGORIES.Equipment
-      return codes.indexOf(a.code) - codes.indexOf(b.code)
-    })
+    const equipmentItems = items?.filter(item => item.category === 'Equipment')
 
     return (
       <div>
@@ -45,7 +39,7 @@ export default function GoodsOverview() {
               <div className="flex items-center gap-3">
                 <ItemIcon code={item.code} size="md" />
                 <div className="flex-1">
-                  <h3 className="font-semibold text-white">{ITEM_NAMES[item.code] || item.name}</h3>
+                  <h3 className="font-semibold text-white">{item.displayName || item.name}</h3>
                   <p className="text-sm text-gray-400">{item.code}</p>
                   {item.currentPrice && (
                     <p className="text-lg font-bold text-green-400 mt-1">
@@ -61,6 +55,8 @@ export default function GoodsOverview() {
     )
   }
 
+  const categories = ['Ammo', 'Food', 'Construction']
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -74,13 +70,8 @@ export default function GoodsOverview() {
       </div>
       
       {/* Large categories full width */}
-      {['Ammo', 'Food', 'Construction'].map(category => {
-        const categoryItems = items?.filter(item => 
-          ITEM_CATEGORIES[category as keyof typeof ITEM_CATEGORIES]?.includes(item.code)
-        ).sort((a, b) => {
-          const codes = ITEM_CATEGORIES[category as keyof typeof ITEM_CATEGORIES]
-          return codes.indexOf(a.code) - codes.indexOf(b.code)
-        })
+      {categories.map(category => {
+        const categoryItems = items?.filter(item => item.category === category)
 
         if (!categoryItems || categoryItems.length === 0) return null
 
@@ -97,7 +88,7 @@ export default function GoodsOverview() {
                   <div className="flex items-center gap-3">
                     <ItemIcon code={item.code} size="md" />
                     <div className="flex-1">
-                      <h3 className="font-semibold text-white">{ITEM_NAMES[item.code] || item.name}</h3>
+                      <h3 className="font-semibold text-white">{item.displayName || item.name}</h3>
                       <p className="text-sm text-gray-400">{item.code}</p>
                       {item.currentPrice && (
                         <p className="text-lg font-bold text-green-400 mt-1">
@@ -115,12 +106,7 @@ export default function GoodsOverview() {
 
       {/* Small categories */}
       {['Buffs', 'Cases', 'Craft'].map(category => {
-        const categoryItems = items?.filter(item => 
-          ITEM_CATEGORIES[category as keyof typeof ITEM_CATEGORIES]?.includes(item.code)
-        ).sort((a, b) => {
-          const codes = ITEM_CATEGORIES[category as keyof typeof ITEM_CATEGORIES]
-          return codes.indexOf(a.code) - codes.indexOf(b.code)
-        })
+        const categoryItems = items?.filter(item => item.category === category)
 
         if (!categoryItems || categoryItems.length === 0) return null
 
@@ -137,7 +123,7 @@ export default function GoodsOverview() {
                   <div className="flex items-center gap-3">
                     <ItemIcon code={item.code} size="md" />
                     <div className="flex-1">
-                      <h3 className="font-semibold text-white">{ITEM_NAMES[item.code] || item.name}</h3>
+                      <h3 className="font-semibold text-white">{item.displayName || item.name}</h3>
                       <p className="text-sm text-gray-400">{item.code}</p>
                       {item.currentPrice && (
                         <p className="text-lg font-bold text-green-400 mt-1">

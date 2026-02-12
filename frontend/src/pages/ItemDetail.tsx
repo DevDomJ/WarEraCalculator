@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, BarChart, Bar } from 'recharts'
 import { itemsApi, pricesApi } from '../api/client'
 import { useState, useMemo } from 'react'
-import { ITEM_NAMES } from '../utils/itemNames'
 import ItemIcon from '../components/ItemIcon'
 
 type TimeInterval = 'day' | 'week' | '2weeks' | 'month'
@@ -206,7 +205,7 @@ export default function ItemDetail() {
         <div className="flex items-center gap-4 mb-4">
           <ItemIcon code={item.code} size="lg" />
           <div>
-            <h2 className="text-3xl font-bold text-white">{ITEM_NAMES[item.code] || item.name}</h2>
+            <h2 className="text-3xl font-bold text-white">{item.displayName || item.name}</h2>
             <p className="text-gray-400">{item.code}</p>
           </div>
         </div>

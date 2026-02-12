@@ -1,9 +1,8 @@
-import { ITEM_NAMES } from '../utils/itemNames'
-
 interface ItemIconProps {
   code: string
   size?: 'sm' | 'md' | 'lg'
   showName?: boolean
+  displayName?: string
 }
 
 const sizeClasses = {
@@ -12,18 +11,16 @@ const sizeClasses = {
   lg: 'w-16 h-16',
 }
 
-export default function ItemIcon({ code, size = 'md', showName = false }: ItemIconProps) {
-  const displayName = ITEM_NAMES[code] || code
-
+export default function ItemIcon({ code, size = 'md', showName = false, displayName }: ItemIconProps) {
   return (
     <div className="flex items-center gap-3">
       <img 
         src={`/icons/${code}.png`} 
-        alt={displayName} 
+        alt={displayName || code} 
         className={sizeClasses[size]}
         onError={(e) => { e.currentTarget.style.display = 'none' }}
       />
-      {showName && <span className="font-semibold text-white">{displayName}</span>}
+      {showName && displayName && <span className="font-semibold text-white">{displayName}</span>}
     </div>
   )
 }

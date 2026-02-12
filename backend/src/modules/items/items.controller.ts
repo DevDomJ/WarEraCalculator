@@ -1,6 +1,8 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { GameConfigService } from '../game-config/game-config.service';
 import { PrismaService } from '../../prisma.service';
+import { getItemCategory } from '../../config/item-categories';
+import { getItemDisplayName } from '../../config/item-display-names';
 
 @Controller('items')
 export class ItemsController {
@@ -18,7 +20,12 @@ export class ItemsController {
           where: { itemCode: item.code },
           orderBy: { timestamp: 'desc' },
         });
-        return { ...item, currentPrice: latestPrice?.price || null };
+        return { 
+          ...item, 
+          currentPrice: latestPrice?.price || null,
+          category: getItemCategory(item.code),
+          displayName: getItemDisplayName(item.code),
+        };
       })
     );
     return itemsWithPrices;
@@ -34,6 +41,11 @@ export class ItemsController {
       orderBy: { timestamp: 'desc' },
     });
     
-    return { ...item, currentPrice: latestPrice?.price || null };
+    return { 
+      ...item, 
+      currentPrice: latestPrice?.price || null,
+      category: getItemCategory(code),
+      displayName: getItemDisplayName(code),
+    };
   }
 }
