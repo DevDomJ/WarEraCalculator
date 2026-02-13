@@ -162,6 +162,7 @@ export default function CompaniesList() {
             type="text"
             value={inputUserId}
             onChange={(e) => setInputUserId(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSetUserId()}
             placeholder="Your User ID"
             className="w-full px-4 py-2 border border-gray-600 bg-gray-700 text-white rounded mb-4"
           />
