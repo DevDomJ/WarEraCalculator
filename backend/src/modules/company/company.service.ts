@@ -40,6 +40,7 @@ export interface WorkerData {
   wage: number;
   maxEnergy?: number;
   production?: number;
+  fidelity?: number;
 }
 
 @Injectable()
@@ -142,6 +143,8 @@ export class CompanyService {
             const workersData = Array.isArray(workersResponse) ? workersResponse[0] : workersResponse;
             const workersList = workersData?.result?.data?.workers || [];
             
+            this.logger.debug(`Worker raw data: ${JSON.stringify(workersList)}`);
+            
             // Fetch user data for each worker to get maxEnergy and production
             workers = await Promise.all(workersList.map(async (w: any) => {
               try {
@@ -160,6 +163,7 @@ export class CompanyService {
                   wage: w.wage || 0,
                   maxEnergy: user?.skills?.energy?.total || 70,
                   production: user?.skills?.production?.total || 0,
+                  fidelity: w.fidelity || 0,
                 };
               } catch (error) {
                 this.logger.debug(`Failed to fetch user data for worker ${w._id}: ${error.message}`);
@@ -171,6 +175,7 @@ export class CompanyService {
                   wage: w.wage || 0,
                   maxEnergy: 70,
                   production: 0,
+                  fidelity: 0,
                 };
               }
             }));
@@ -239,6 +244,7 @@ export class CompanyService {
                 wage: w.wage,
                 maxEnergy: w.maxEnergy || 70,
                 production: w.production || 0,
+                fidelity: w.fidelity || 0,
               })),
             });
           }
@@ -273,6 +279,7 @@ export class CompanyService {
       wage: w.wage,
       maxEnergy: w.maxEnergy,
       production: w.production,
+      fidelity: w.fidelity,
     }));
     
     return {
@@ -298,6 +305,7 @@ export class CompanyService {
         wage: w.wage,
         maxEnergy: w.maxEnergy,
         production: w.production,
+        fidelity: w.fidelity,
       }));
       
       return {

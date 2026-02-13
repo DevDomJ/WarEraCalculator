@@ -149,6 +149,10 @@ export default function CompanyDetail() {
                       <p className="text-xs text-gray-400">Production</p>
                       <p className="font-semibold text-white">{worker.production || 0}</p>
                     </div>
+                    <div className="text-right">
+                      <p className="text-xs text-gray-400">Fidelity</p>
+                      <p className="font-semibold text-white">+{Math.round(worker.fidelity || 0)}%</p>
+                    </div>
                   </div>
                 </div>
               ))}

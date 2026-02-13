@@ -41,6 +41,7 @@ export interface Worker {
   wage: number
   maxEnergy?: number
   production?: number
+  fidelity?: number
 }
 
 export interface ProductionBonusBreakdown {

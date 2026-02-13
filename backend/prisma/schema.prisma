@@ -80,6 +80,7 @@ model Worker {
   wage            Float
   maxEnergy       Float    @default(70)
   production      Float    @default(0)
+  fidelity        Float    @default(0)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
