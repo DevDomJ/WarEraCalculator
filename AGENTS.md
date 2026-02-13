@@ -21,7 +21,9 @@ WarEra Calculator - A web application for tracking and visualizing market prices
 ### Production Environment
 - **Backend**: Runs on port 4000
 - **Database**: Separate isolated location (see PRODUCTION_DEPLOY.md - not in repo)
+- **Process Manager**: pm2 (process name: warera-prod)
 - **Lifecycle**: Runs 24/7, collects data continuously
+- **Management**: `pm2 status`, `pm2 restart warera-prod`, `pm2 logs warera-prod`
 
 **CRITICAL**: 
 - Development and production are COMPLETELY ISOLATED in separate directories
@@ -87,10 +89,11 @@ cd frontend && npm run dev
 See PRODUCTION_DEPLOY.md for detailed deployment instructions (private file, not in repo).
 
 **Summary:**
-1. Build code in dev directory
-2. Copy `dist/` folder to production
-3. Restart production server
-4. NEVER touch database files
+1. Build code in dev directory: `npm run build` (backend and frontend)
+2. Copy `dist/` folders to production location
+3. Restart production: `pm2 restart warera-prod`
+4. Verify: `pm2 status` and `pm2 logs warera-prod`
+5. NEVER touch database files
 
 ### Database Migrations
 ```bash
