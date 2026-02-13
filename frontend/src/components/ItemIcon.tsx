@@ -1,11 +1,12 @@
 interface ItemIconProps {
   code: string
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'xs' | 'sm' | 'md' | 'lg'
   showName?: boolean
   displayName?: string
 }
 
 const sizeClasses = {
+  xs: 'w-3 h-3',
   sm: 'w-10 h-10',
   md: 'w-12 h-12',
   lg: 'w-16 h-16',

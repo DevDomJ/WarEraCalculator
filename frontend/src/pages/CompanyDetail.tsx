@@ -137,7 +137,13 @@ export default function CompanyDetail() {
                     )}
                     <div>
                       <p className="font-semibold text-white">{worker.username || `Worker ${index + 1}`}</p>
-                      <p className="text-xs text-gray-400">Wage: {worker.wage.toFixed(3)} €</p>
+                      <p className="text-xs text-gray-400">
+                        Wage: {worker.wage.toFixed(3)} € • Daily: {(worker.dailyWage || 0).toFixed(3)} €
+                      </p>
+                      <p className="text-xs text-gray-400 flex items-center gap-1">
+                        <span>Paid PP: {(worker.paidProduction || 0).toFixed(2)} • Total PP: {(worker.totalProduction || 0).toFixed(2)} • Output: {(worker.outputUnits || 0).toFixed(2)}</span>
+                        <ItemIcon code={company.type} size="xs" />
+                      </p>
                     </div>
                   </div>
                   <div className="flex gap-4 text-sm">

@@ -1,6 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, forwardRef, Inject } from '@nestjs/common';
 import { WarEraApiService } from '../warera-api/warera-api.service';
 import { PrismaService } from '../../prisma.service';
+import { ProductionBonusService } from '../production-bonus/production-bonus.service';
+import { ProductionCalculatorService } from '../production-calculator/production-calculator.service';
 
 export interface ProductionBonusBreakdown {
   total: number;
@@ -41,25 +43,75 @@ export interface WorkerData {
   maxEnergy?: number;
   production?: number;
   fidelity?: number;
+  dailyWage?: number;
+  paidProduction?: number;
+  totalProduction?: number;
+  outputUnits?: number;
 }
 
 @Injectable()
 export class CompanyService {
   private readonly logger = new Logger(CompanyService.name);
 
+  // Game mechanics constants
+  private readonly ENERGY_REGEN_PER_HOUR = 0.1; // 10% of max energy per hour
+  private readonly HOURS_PER_DAY = 24;
+  private readonly ENERGY_PER_WORK_ACTION = 10;
+
   constructor(
     private readonly apiService: WarEraApiService,
     private readonly prisma: PrismaService,
+    @Inject(forwardRef(() => ProductionBonusService))
+    private readonly productionBonusService: ProductionBonusService,
+    @Inject(forwardRef(() => ProductionCalculatorService))
+    private readonly productionCalculatorService: ProductionCalculatorService,
   ) {}
 
   calculateTotalDailyWage(workers: WorkerData[]): number {
     return workers.reduce((sum, w) => {
-      const maxEnergy = w.maxEnergy || 70;
-      const production = w.production || 0;
-      const energyPerDay = maxEnergy * 0.1 * 24;
-      const ppPerDay = (energyPerDay / 10) * production;
+      if (!w.maxEnergy || !w.production) return sum;
+      const energyPerDay = w.maxEnergy * this.ENERGY_REGEN_PER_HOUR * this.HOURS_PER_DAY;
+      const ppPerDay = (energyPerDay / this.ENERGY_PER_WORK_ACTION) * w.production;
       return sum + (w.wage * ppPerDay);
     }, 0);
+  }
+
+  calculateWorkerDailyWage(worker: WorkerData): number {
+    if (!worker.maxEnergy || !worker.production) return 0;
+    const energyPerDay = worker.maxEnergy * this.ENERGY_REGEN_PER_HOUR * this.HOURS_PER_DAY;
+    const ppPerDay = (energyPerDay / this.ENERGY_PER_WORK_ACTION) * worker.production;
+    return worker.wage * ppPerDay;
+  }
+
+  calculateWorkerPaidProduction(worker: WorkerData): number {
+    if (!worker.maxEnergy || !worker.production) return 0;
+    const energyPerDay = worker.maxEnergy * this.ENERGY_REGEN_PER_HOUR * this.HOURS_PER_DAY;
+    return (energyPerDay / this.ENERGY_PER_WORK_ACTION) * worker.production;
+  }
+
+  calculateWorkerTotalProduction(worker: WorkerData, companyProductionBonus: number): number {
+    const paidProduction = this.calculateWorkerPaidProduction(worker);
+    const fidelityBonus = (worker.fidelity || 0) / 100;
+    return paidProduction * (1 + companyProductionBonus + fidelityBonus);
+  }
+
+  /**
+   * Enriches worker data with calculated metrics (daily wage, production, output units)
+   * @param worker - Base worker data
+   * @param bonusMultiplier - Company production bonus as decimal (e.g., 0.40 for 40%)
+   * @param productionPerUnit - Production points required to produce one unit of output
+   * @returns Worker data with calculated metrics
+   */
+  enrichWorkerWithMetrics(worker: WorkerData, bonusMultiplier: number, productionPerUnit: number): WorkerData {
+    const totalProduction = this.calculateWorkerTotalProduction(worker, bonusMultiplier);
+    
+    return {
+      ...worker,
+      dailyWage: this.calculateWorkerDailyWage(worker),
+      paidProduction: this.calculateWorkerPaidProduction(worker),
+      totalProduction,
+      outputUnits: totalProduction / productionPerUnit,
+    };
   }
 
   async fetchCompaniesByUserId(userId: string): Promise<CompanyData[]> {
@@ -155,7 +207,7 @@ export class CompanyService {
                 const userData = Array.isArray(userResponse) ? userResponse[0] : userResponse;
                 const user = userData?.result?.data;
                 
-                return {
+                const workerData = {
                   workerId: w._id || w.id,
                   userId: w.user || w.userId,
                   username: user?.username || 'Unknown',
@@ -165,9 +217,14 @@ export class CompanyService {
                   production: user?.skills?.production?.total || 0,
                   fidelity: w.fidelity || 0,
                 };
+                
+                return {
+                  ...workerData,
+                  dailyWage: this.calculateWorkerDailyWage(workerData),
+                };
               } catch (error) {
                 this.logger.debug(`Failed to fetch user data for worker ${w._id}: ${error.message}`);
-                return {
+                const workerData = {
                   workerId: w._id || w.id,
                   userId: w.user || w.userId,
                   username: 'Unknown',
@@ -176,6 +233,11 @@ export class CompanyService {
                   maxEnergy: 70,
                   production: 0,
                   fidelity: 0,
+                };
+                
+                return {
+                  ...workerData,
+                  dailyWage: this.calculateWorkerDailyWage(workerData),
                 };
               }
             }));
@@ -193,6 +255,22 @@ export class CompanyService {
           };
           const maxProduction = maxProductionByLevel[storageLevel] || 200;
 
+          // Get production bonus for worker calculations
+          const productionBonus = await this.productionBonusService.calculateProductionBonus(
+            company.region,
+            company.itemCode || company.type,
+          );
+          const bonusMultiplier = productionBonus.total / 100;
+
+          // Get recipe for output calculation
+          const recipe = await this.productionCalculatorService.getRecipeByItemCode(company.itemCode || company.type);
+          const productionPerUnit = recipe?.productionPoints || 1;
+
+          // Enrich workers with calculated metrics
+          const workersWithProduction = workers.map(w => 
+            this.enrichWorkerWithMetrics(w, bonusMultiplier, productionPerUnit)
+          );
+
           const companyDataObj: CompanyData = {
             companyId: company._id || company.id,
             userId,
@@ -202,8 +280,9 @@ export class CompanyService {
             productionValue: company.production || 0,
             maxProduction,
             energyConsumption: workOffer?.energyConsumption || 10,
-            workers,
+            workers: workersWithProduction,
             lastFetched: new Date(),
+            productionBonus,
           };
 
           await this.prisma.company.upsert({
@@ -271,21 +350,39 @@ export class CompanyService {
     
     if (!company) return null;
     
-    const workers = company.workers.map(w => ({
-      workerId: w.workerId,
-      userId: w.userId,
-      username: w.username,
-      avatarUrl: w.avatarUrl,
-      wage: w.wage,
-      maxEnergy: w.maxEnergy,
-      production: w.production,
-      fidelity: w.fidelity,
-    }));
+    // Get production bonus
+    const productionBonus = await this.productionBonusService.calculateProductionBonus(
+      company.region,
+      company.type,
+    );
+    const bonusMultiplier = productionBonus.total / 100;
+    
+    // Get recipe for output calculation
+    const recipe = await this.productionCalculatorService.getRecipeByItemCode(company.type);
+    const productionPerUnit = recipe?.productionPoints || 1;
+    
+    const workers = company.workers.map(w => 
+      this.enrichWorkerWithMetrics(
+        {
+          workerId: w.workerId,
+          userId: w.userId,
+          username: w.username,
+          avatarUrl: w.avatarUrl,
+          wage: w.wage,
+          maxEnergy: w.maxEnergy,
+          production: w.production,
+          fidelity: w.fidelity,
+        },
+        bonusMultiplier,
+        productionPerUnit
+      )
+    );
     
     return {
       ...company,
       workers,
       totalDailyWage: this.calculateTotalDailyWage(workers),
+      productionBonus,
     };
   }
 

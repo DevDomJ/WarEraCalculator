@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, forwardRef, Inject } from '@nestjs/common';
 import { CompanyService, CompanyData } from '../company/company.service';
 import { GameConfigService } from '../game-config/game-config.service';
 import { PrismaService } from '../../prisma.service';
@@ -33,6 +33,7 @@ export class ProductionCalculatorService {
   private readonly logger = new Logger(ProductionCalculatorService.name);
 
   constructor(
+    @Inject(forwardRef(() => CompanyService))
     private readonly companyService: CompanyService,
     private readonly gameConfigService: GameConfigService,
     private readonly prisma: PrismaService,
@@ -58,6 +59,11 @@ export class ProductionCalculatorService {
     }
 
     return recipes;
+  }
+
+  async getRecipeByItemCode(itemCode: string): Promise<Recipe | null> {
+    const recipes = await this.getRecipes();
+    return recipes.find(r => r.output === itemCode) || null;
   }
 
   calculateProductionMetrics(
