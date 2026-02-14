@@ -84,6 +84,30 @@ cd backend
 npm run build
 ```
 
+### Deploy to Production
+
+**CRITICAL:** See PRODUCTION_DEPLOY.md for detailed deployment instructions (private file, not in repo).
+
+**Deployment Checklist:**
+1. ✅ Build code in dev directory (frontend and backend)
+2. ✅ Create timestamped backup of production database
+3. ✅ Copy `dist/` folders to production location
+4. ✅ Run database migrations in production (if any new migrations exist)
+5. ✅ Restart production: `pm2 restart warera-prod`
+6. ✅ Verify: `pm2 status` and `pm2 logs warera-prod`
+
+**Database Migration Command (Production):**
+```bash
+# In production directory
+cd backend
+npx prisma migrate deploy
+```
+
+**NEVER:**
+- ❌ Copy database files during deployment
+- ❌ Use `prisma migrate dev` in production (use `migrate deploy` instead)
+- ❌ Touch production database files directly
+
 ### Run Production
 ```bash
 cd backend

@@ -63,6 +63,26 @@ export interface ProductionBonusBreakdown {
   }
 }
 
+export interface ProfitMetricsBase {
+  dailyOutput: number
+  dailyRevenue: number
+  dailyInputCost: number
+  profitSelfProduction: number
+  profitWithTrade: number
+}
+
+export interface DailyProfitMetrics extends ProfitMetricsBase {
+  dailyWage: number
+}
+
+export interface WorkerProfitMetrics extends ProfitMetricsBase {
+  dailyWage: number
+}
+
+export interface AutomationProfitMetrics extends ProfitMetricsBase {
+  // No wage for automation
+}
+
 export interface Company {
   companyId: string
   userId: string
@@ -72,10 +92,14 @@ export interface Company {
   productionValue: number
   maxProduction: number
   energyConsumption: number
+  automatedEngineLevel?: number
   lastFetched?: string
   workers?: Worker[]
   totalDailyWage?: number
   productionBonus?: ProductionBonusBreakdown
+  dailyProfitMetrics?: DailyProfitMetrics
+  workerProfitMetrics?: WorkerProfitMetrics
+  automationProfitMetrics?: AutomationProfitMetrics
 }
 
 export interface ProductionMetrics {

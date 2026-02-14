@@ -58,3 +58,6 @@ chats/
 
 # Production deployment documentation (contains private paths)
 PRODUCTION_DEPLOY.md
+
+# Temporary files
+tmp/

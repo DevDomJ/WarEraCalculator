@@ -1,18 +1,15 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate } from 'react-router-dom'
-import { companyApi, productionApi, itemsApi } from '../api/client'
+import { companyApi, itemsApi } from '../api/client'
 import ItemIcon from '../components/ItemIcon'
-import ProductionTracker from '../components/ProductionTracker'
-import ProductionHistoryChart from '../components/ProductionHistoryChart'
 import ProductionBonusTooltip from '../components/ProductionBonusTooltip'
+import ProfitSection from '../components/ProfitSection'
 
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const [productionBonus, setProductionBonus] = useState(0.2)
-  const [showAnalytics, setShowAnalytics] = useState(false)
 
   // Check if cache is older than 5 minutes
   const shouldRefetch = (lastFetched?: string) => {
@@ -51,18 +48,6 @@ export default function CompanyDetail() {
     queryKey: ['item', company?.type],
     queryFn: () => itemsApi.getByCode(company!.type),
     enabled: !!company?.type,
-  })
-
-  const { data: metrics } = useQuery({
-    queryKey: ['metrics', id, productionBonus],
-    queryFn: () => productionApi.getMetrics(id!, productionBonus),
-    enabled: !!id,
-  })
-
-  const { data: profit } = useQuery({
-    queryKey: ['profit', id, company?.type, productionBonus],
-    queryFn: () => productionApi.calculateProfit(id!, company!.type, productionBonus),
-    enabled: !!id && !!company?.type,
   })
 
   if (!company) return <div className="text-gray-300">Loading...</div>
@@ -125,156 +110,103 @@ export default function CompanyDetail() {
           </div>
         </div>
 
+        {company.workerProfitMetrics && workers.length > 0 && (
+          <ProfitSection
+            title="Worker Profit Analysis"
+            metrics={company.workerProfitMetrics}
+            outputItemName={outputItem?.displayName || company.type}
+            showWage={true}
+          />
+        )}
+
+        {company.automationProfitMetrics && company.automatedEngineLevel && company.automatedEngineLevel > 0 && workers.length > 0 && (
+          <ProfitSection
+            title="Automation Profit Analysis"
+            metrics={company.automationProfitMetrics}
+            outputItemName={outputItem?.displayName || company.type}
+            showWage={false}
+          />
+        )}
+
+        {company.dailyProfitMetrics && (
+          <ProfitSection
+            title="Daily Profit Analysis"
+            metrics={company.dailyProfitMetrics}
+            outputItemName={outputItem?.displayName || company.type}
+            showWage={workers.length > 0}
+          />
+        )}
+
         {workers.length > 0 && (
           <div className="border-t border-gray-700 pt-4">
             <h3 className="text-lg font-semibold mb-2 text-white">Workers</h3>
-            <div className="space-y-2">
-              {workers.map((worker: any, index: number) => (
-                <div key={worker.workerId} className="flex items-center justify-between bg-gray-700 rounded px-3 py-2">
-                  <div className="flex items-center gap-3">
-                    {worker.avatarUrl && (
-                      <img src={worker.avatarUrl} alt={worker.username} className="w-10 h-10 rounded-full" />
-                    )}
-                    <div>
-                      <p className="font-semibold text-white">{worker.username || `Worker ${index + 1}`}</p>
-                      <p className="text-xs text-gray-400">
-                        Wage: {worker.wage.toFixed(3)} € • Daily: {(worker.dailyWage || 0).toFixed(3)} €
-                      </p>
-                      <p className="text-xs text-gray-400 flex items-center gap-1">
-                        <span>Paid PP: {(worker.paidProduction || 0).toFixed(2)} • Total PP: {(worker.totalProduction || 0).toFixed(2)} • Output: {(worker.outputUnits || 0).toFixed(2)}</span>
-                        <ItemIcon code={company.type} size="xs" />
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-4 text-sm">
-                    <div className="text-right">
-                      <p className="text-xs text-gray-400">Energy</p>
-                      <p className="font-semibold text-white">{worker.maxEnergy || 70}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-gray-400">Production</p>
-                      <p className="font-semibold text-white">{worker.production || 0}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-gray-400">Fidelity</p>
-                      <p className="font-semibold text-white">+{Math.round(worker.fidelity || 0)}%</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-600">
+                    <th className="text-left py-2 px-2 text-gray-400 font-medium">Worker</th>
+                    <th className="text-right py-2 px-2 text-gray-400 font-medium">Wage</th>
+                    <th className="text-right py-2 px-2 text-gray-400 font-medium">Daily Wage</th>
+                    <th className="text-right py-2 px-2 text-gray-400 font-medium">Paid PP</th>
+                    <th className="text-right py-2 px-2 text-gray-400 font-medium">Total PP</th>
+                    <th className="text-right py-2 px-2 text-gray-400 font-medium">Output</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {workers.map((worker: any, index: number) => (
+                    <tr key={worker.workerId} className="border-b border-gray-700 hover:bg-gray-700/50">
+                      <td className="py-2 px-2">
+                        <div className="flex items-center gap-2">
+                          {worker.avatarUrl && (
+                            <img src={worker.avatarUrl} alt={worker.username} className="w-8 h-8 rounded-full" />
+                          )}
+                          <div className="flex flex-col gap-1">
+                            <span className="font-semibold text-white">{worker.username || `Worker ${index + 1}`}</span>
+                            <div className="flex gap-1.5">
+                              <span className="px-2 py-0.5 bg-blue-600/30 text-blue-300 rounded text-xs">
+                                ⚡ {worker.maxEnergy || 70}
+                              </span>
+                              <span className="px-2 py-0.5 bg-[#E1C997]/20 text-[#E1C997] rounded text-xs flex items-center gap-1">
+                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M14.79,10.62L3.5,21.9L2.1,20.5L13.38,9.21L14.79,10.62M19.27,7.73L19.86,7.14L19.07,6.35L19.71,5.71L18.29,4.29L17.65,4.93L16.86,4.14L16.27,4.73C14.53,3.31 12.57,2.17 10.47,1.37L9.64,3.16C11.39,4.08 13,5.19 14.5,6.5L14,7L17,10L17.5,9.5C18.81,11 19.92,12.61 20.84,14.36L22.63,13.53C21.83,11.43 20.69,9.47 19.27,7.73Z"></path>
+                                </svg>
+                                {worker.production || 0}
+                              </span>
+                              <span className="px-2 py-0.5 bg-purple-600/30 text-purple-300 rounded text-xs">
+                                ❤️ +{Math.round(worker.fidelity || 0)}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="text-right py-2 px-2 text-white">{worker.wage.toFixed(3)} €</td>
+                      <td className="text-right py-2 px-2 text-white">{(worker.dailyWage || 0).toFixed(3)} €</td>
+                      <td className="text-right py-2 px-2 text-white">{(worker.paidProduction || 0).toFixed(2)}</td>
+                      <td className="text-right py-2 px-2 text-white">{(worker.totalProduction || 0).toFixed(2)}</td>
+                      <td className="text-right py-2 px-2 text-white">{(worker.outputUnits || 0).toFixed(2)}</td>
+                    </tr>
+                  ))}
+                  <tr className="border-t-2 border-gray-500 font-bold bg-gray-700/30">
+                    <td className="py-2 px-2 text-white">Total</td>
+                    <td className="text-right py-2 px-2 text-white">
+                      {workers.reduce((sum: number, w: any) => sum + (w.wage || 0), 0).toFixed(3)} €
+                    </td>
+                    <td className="text-right py-2 px-2 text-white">
+                      {workers.reduce((sum: number, w: any) => sum + (w.dailyWage || 0), 0).toFixed(3)} €
+                    </td>
+                    <td className="text-right py-2 px-2 text-white">
+                      {workers.reduce((sum: number, w: any) => sum + (w.paidProduction || 0), 0).toFixed(2)}
+                    </td>
+                    <td className="text-right py-2 px-2 text-white">
+                      {workers.reduce((sum: number, w: any) => sum + (w.totalProduction || 0), 0).toFixed(2)}
+                    </td>
+                    <td className="text-right py-2 px-2 text-white">
+                      {workers.reduce((sum: number, w: any) => sum + (w.outputUnits || 0), 0).toFixed(2)}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-          </div>
-        )}
-      </div>
-
-      <div className="mb-4">
-        <button
-          onClick={() => setShowAnalytics(!showAnalytics)}
-          className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 text-white"
-        >
-          {showAnalytics ? 'Hide Analytics' : 'Show Analytics'}
-        </button>
-      </div>
-
-      {showAnalytics && (
-        <div className="space-y-6 mb-6">
-          <ProductionTracker companyId={id!} expectedPP={metrics?.totalProductionPointsPerDay || 0} />
-          <ProductionHistoryChart companyId={id!} days={30} />
-        </div>
-      )}
-
-      <div className="bg-gray-800 rounded-lg shadow p-6 mb-6">
-        <h3 className="text-xl font-bold mb-4 text-white">Production Metrics</h3>
-        
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-2 text-gray-300">Production Bonus</label>
-          <input
-            type="number"
-            step="0.01"
-            value={productionBonus}
-            onChange={(e) => setProductionBonus(parseFloat(e.target.value))}
-            className="px-4 py-2 border border-gray-600 bg-gray-700 text-white rounded"
-          />
-        </div>
-
-        {metrics && (
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-300">PP per Work:</span>
-              <span className="font-bold text-white">{metrics.productionPointsPerWork?.toFixed(2) || '0.00'}</span>
-            </div>
-            <p className="text-sm text-gray-400 italic">{metrics.formula?.ppPerWork || ''}</p>
-
-            <div className="flex justify-between items-center">
-              <span className="text-gray-300">Work Actions/Day:</span>
-              <span className="font-bold text-white">{metrics.workActionsPerDay?.toFixed(2) || '0.00'}</span>
-            </div>
-            <p className="text-sm text-gray-400 italic">{metrics.formula?.actionsPerDay || ''}</p>
-
-            <div className="flex justify-between items-center">
-              <span className="text-gray-300">Total PP/Day:</span>
-              <span className="font-bold text-white">{metrics.totalProductionPointsPerDay?.toFixed(2) || '0.00'}</span>
-            </div>
-            <p className="text-sm text-gray-400 italic">{metrics.formula?.totalPP || ''}</p>
-          </div>
-        )}
-      </div>
-
-      <div className="bg-gray-800 rounded-lg shadow p-6">
-        <h3 className="text-xl font-bold mb-4 text-white">Profit Calculator</h3>
-        
-        {outputItem && (
-          <div className="mb-4 p-3 bg-gray-700 rounded">
-            <ItemIcon code={company.type} size="sm" showName displayName={outputItem.displayName} />
-            <p className="text-sm text-gray-400 mt-2">
-              Current Price: <span className="text-green-400 font-bold">{outputItem.currentPrice?.toFixed(3) || 'N/A'} €</span>
-            </p>
-          </div>
-        )}
-
-        {profit && profit.scenarioA?.breakdown?.inputCosts?.length > 0 && (
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="border border-gray-700 rounded p-4">
-              <h4 className="font-bold mb-2 text-white">Scenario A: Buy Inputs</h4>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-300">Revenue:</span>
-                  <span className="text-green-400">{profit.scenarioA.revenue.toFixed(3)} €</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-300">Costs (Inputs + Wages):</span>
-                  <span className="text-red-400">{profit.scenarioA.costs.toFixed(3)} €</span>
-                </div>
-                <div className="flex justify-between font-bold border-t border-gray-700 pt-2">
-                  <span className="text-gray-300">Profit/PP:</span>
-                  <span className={profit.scenarioA.profit > 0 ? 'text-green-400' : 'text-red-400'}>
-                    {profit.scenarioA.profitPerPP.toFixed(3)} €
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {profit.scenarioB && (
-              <div className="border border-gray-700 rounded p-4">
-                <h4 className="font-bold mb-2 text-white">Scenario B: Self-Produce</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Revenue:</span>
-                    <span className="text-green-400">{profit.scenarioB.revenue.toFixed(3)} €</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Costs:</span>
-                    <span className="text-red-400">{profit.scenarioB.costs.toFixed(3)} €</span>
-                  </div>
-                  <div className="flex justify-between font-bold border-t border-gray-700 pt-2">
-                    <span className="text-gray-300">Profit/PP:</span>
-                    <span className={profit.scenarioB.profit > 0 ? 'text-green-400' : 'text-red-400'}>
-                      {profit.scenarioB.profitPerPP.toFixed(3)} €
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>

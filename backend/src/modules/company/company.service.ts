@@ -19,6 +19,26 @@ export interface ProductionBonusBreakdown {
   };
 }
 
+export interface ProfitMetricsBase {
+  dailyOutput: number;
+  dailyRevenue: number;
+  dailyInputCost: number;
+  profitSelfProduction: number;
+  profitWithTrade: number;
+}
+
+export interface DailyProfitMetrics extends ProfitMetricsBase {
+  dailyWage: number;
+}
+
+export interface WorkerProfitMetrics extends ProfitMetricsBase {
+  dailyWage: number;
+}
+
+export interface AutomationProfitMetrics extends ProfitMetricsBase {
+  // No wage for automation
+}
+
 export interface CompanyData {
   companyId: string;
   userId: string;
@@ -32,6 +52,10 @@ export interface CompanyData {
   lastFetched?: Date;
   totalDailyWage?: number;
   productionBonus?: ProductionBonusBreakdown;
+  dailyProfitMetrics?: DailyProfitMetrics;
+  workerProfitMetrics?: WorkerProfitMetrics;
+  automationProfitMetrics?: AutomationProfitMetrics;
+  automatedEngineLevel?: number;
 }
 
 export interface WorkerData {
@@ -57,6 +81,7 @@ export class CompanyService {
   private readonly ENERGY_REGEN_PER_HOUR = 0.1; // 10% of max energy per hour
   private readonly HOURS_PER_DAY = 24;
   private readonly ENERGY_PER_WORK_ACTION = 10;
+  private readonly AUTO_PRODUCTION_POINTS_PER_LEVEL_PER_DAY = 24;
 
   constructor(
     private readonly apiService: WarEraApiService,
@@ -93,6 +118,96 @@ export class CompanyService {
     const paidProduction = this.calculateWorkerPaidProduction(worker);
     const fidelityBonus = (worker.fidelity || 0) / 100;
     return paidProduction * (1 + companyProductionBonus + fidelityBonus);
+  }
+
+  async calculateDailyProfitMetrics(
+    workers: WorkerData[],
+    outputItemCode: string,
+    productionPerUnit: number,
+  ): Promise<DailyProfitMetrics> {
+    const dailyOutput = workers.reduce((sum, w) => sum + (w.outputUnits || 0), 0);
+    const outputPrice = await this.getOutputPrice(outputItemCode);
+    const dailyRevenue = dailyOutput * outputPrice;
+    const dailyWage = workers.reduce((sum, w) => sum + (w.dailyWage || 0), 0);
+    const dailyInputCost = await this.calculateInputCost(outputItemCode, dailyOutput);
+    
+    return {
+      dailyOutput,
+      dailyRevenue,
+      dailyWage,
+      dailyInputCost,
+      profitSelfProduction: dailyRevenue - dailyWage,
+      profitWithTrade: dailyRevenue - dailyWage - dailyInputCost,
+    };
+  }
+
+  async calculateWorkerProfitMetrics(
+    workers: WorkerData[],
+    outputItemCode: string,
+    productionPerUnit: number,
+  ): Promise<WorkerProfitMetrics> {
+    return this.calculateDailyProfitMetrics(workers, outputItemCode, productionPerUnit);
+  }
+
+  async calculateAutomationProfitMetrics(
+    automatedEngineLevel: number,
+    outputItemCode: string,
+    productionPerUnit: number,
+  ): Promise<AutomationProfitMetrics> {
+    const dailyProductionPoints = automatedEngineLevel * this.AUTO_PRODUCTION_POINTS_PER_LEVEL_PER_DAY;
+    const dailyOutput = dailyProductionPoints / productionPerUnit;
+    const outputPrice = await this.getOutputPrice(outputItemCode);
+    const dailyRevenue = dailyOutput * outputPrice;
+    const dailyInputCost = await this.calculateInputCost(outputItemCode, dailyOutput);
+    
+    return {
+      dailyOutput,
+      dailyRevenue,
+      dailyInputCost,
+      profitSelfProduction: dailyRevenue,
+      profitWithTrade: dailyRevenue - dailyInputCost,
+    };
+  }
+
+  private async getOutputPrice(itemCode: string): Promise<number> {
+    const price = await this.prisma.priceHistory.findFirst({
+      where: { itemCode },
+      orderBy: { timestamp: 'desc' },
+    });
+    
+    if (!price) {
+      this.logger.warn(`No price data found for item: ${itemCode}`);
+      return 0;
+    }
+    
+    return price.price;
+  }
+
+  private async calculateInputCost(outputItemCode: string, dailyOutput: number): Promise<number> {
+    const recipe = await this.productionCalculatorService.getRecipeByItemCode(outputItemCode);
+    
+    if (!recipe || recipe.inputs.length === 0) {
+      return 0;
+    }
+    
+    const inputCosts = await Promise.all(
+      recipe.inputs.map(async (input) => {
+        const price = await this.prisma.priceHistory.findFirst({
+          where: { itemCode: input.itemCode },
+          orderBy: { timestamp: 'desc' },
+        });
+        
+        if (!price) {
+          this.logger.warn(`No price data found for input item: ${input.itemCode}`);
+          return 0;
+        }
+        
+        return price.price * input.quantityRequired;
+      })
+    );
+    
+    const totalInputCostPerUnit = inputCosts.reduce((sum, cost) => sum + cost, 0);
+    return totalInputCostPerUnit * dailyOutput;
   }
 
   /**
@@ -280,6 +395,7 @@ export class CompanyService {
             productionValue: company.production || 0,
             maxProduction,
             energyConsumption: workOffer?.energyConsumption || 10,
+            automatedEngineLevel: company.activeUpgradeLevels?.automatedEngine || 0,
             workers: workersWithProduction,
             lastFetched: new Date(),
             productionBonus,
@@ -295,6 +411,7 @@ export class CompanyService {
               productionValue: companyDataObj.productionValue,
               maxProduction: companyDataObj.maxProduction,
               energyConsumption: companyDataObj.energyConsumption,
+              automatedEngineLevel: companyDataObj.automatedEngineLevel,
               lastFetched: companyDataObj.lastFetched,
             },
             create: {
@@ -306,6 +423,7 @@ export class CompanyService {
               productionValue: companyDataObj.productionValue,
               maxProduction: companyDataObj.maxProduction,
               energyConsumption: companyDataObj.energyConsumption,
+              automatedEngineLevel: companyDataObj.automatedEngineLevel,
               lastFetched: companyDataObj.lastFetched,
             },
           });
@@ -378,11 +496,37 @@ export class CompanyService {
       )
     );
     
+    // Calculate worker profit metrics
+    const workerProfitMetrics = workers.length > 0 
+      ? await this.calculateWorkerProfitMetrics(workers, company.type, productionPerUnit)
+      : null;
+    
+    // Calculate automation profit metrics
+    const automationProfitMetrics = company.automatedEngineLevel > 0
+      ? await this.calculateAutomationProfitMetrics(company.automatedEngineLevel, company.type, productionPerUnit)
+      : null;
+    
+    // Calculate total daily profit metrics (sum of worker + automation)
+    let dailyProfitMetrics: DailyProfitMetrics | null = null;
+    if (workerProfitMetrics || automationProfitMetrics) {
+      dailyProfitMetrics = {
+        dailyOutput: (workerProfitMetrics?.dailyOutput || 0) + (automationProfitMetrics?.dailyOutput || 0),
+        dailyRevenue: (workerProfitMetrics?.dailyRevenue || 0) + (automationProfitMetrics?.dailyRevenue || 0),
+        dailyWage: workerProfitMetrics?.dailyWage || 0,
+        dailyInputCost: (workerProfitMetrics?.dailyInputCost || 0) + (automationProfitMetrics?.dailyInputCost || 0),
+        profitSelfProduction: (workerProfitMetrics?.profitSelfProduction || 0) + (automationProfitMetrics?.profitSelfProduction || 0),
+        profitWithTrade: (workerProfitMetrics?.profitWithTrade || 0) + (automationProfitMetrics?.profitWithTrade || 0),
+      };
+    }
+    
     return {
       ...company,
       workers,
       totalDailyWage: this.calculateTotalDailyWage(workers),
       productionBonus,
+      workerProfitMetrics,
+      automationProfitMetrics,
+      dailyProfitMetrics,
     };
   }
 
