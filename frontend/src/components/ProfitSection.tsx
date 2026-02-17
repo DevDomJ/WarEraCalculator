@@ -1,12 +1,8 @@
 import InfoTooltip from './InfoTooltip'
+import { ProfitMetricsBase } from '../api/client'
 
-interface ProfitMetrics {
-  dailyOutput: number
-  dailyRevenue: number
+interface ProfitMetrics extends ProfitMetricsBase {
   dailyWage?: number
-  dailyInputCost: number
-  profitSelfProduction: number
-  profitWithTrade: number
 }
 
 interface ProfitSectionProps {
@@ -44,6 +40,14 @@ export default function ProfitSection({ title, metrics, outputItemName, showWage
           <p className="text-lg font-bold text-green-400">
             {metrics.dailyRevenue.toFixed(3)} €
           </p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-400">Cost/Unit</p>
+          <InfoTooltip content={showWage ? "Total costs (wage + inputs) per unit produced" : "Input costs per unit produced"}>
+            <p className="text-lg font-bold text-orange-400 cursor-help">
+              {metrics.costPerUnit.toFixed(3)} €
+            </p>
+          </InfoTooltip>
         </div>
         {hasInputCost && (
           <div>

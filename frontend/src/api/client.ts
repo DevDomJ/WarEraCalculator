@@ -56,6 +56,12 @@ export interface ProductionBonusBreakdown {
     countryCode: string
     specializedItem: string
   }
+  deposit?: {
+    bonus: number
+    depositType: string
+    /** ISO 8601 date string indicating when the deposit bonus expires */
+    endsAt: string
+  }
   party?: {
     bonus: number
     partyName: string
@@ -69,6 +75,7 @@ export interface ProfitMetricsBase {
   dailyInputCost: number
   profitSelfProduction: number
   profitWithTrade: number
+  costPerUnit: number
 }
 
 export interface DailyProfitMetrics extends ProfitMetricsBase {

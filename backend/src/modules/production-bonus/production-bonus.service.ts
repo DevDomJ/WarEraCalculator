@@ -44,11 +44,25 @@ export class ProductionBonusService {
     const breakdown: ProductionBonusBreakdown = { total: 0 };
 
     try {
-      // Get region to find country
+      // Get region to find country and deposit
       const regionResponse: any = await this.apiService.request('region.getById', { regionId });
       const region = Array.isArray(regionResponse) ? regionResponse[0]?.result?.data : regionResponse?.result?.data;
       
-      if (!region?.country) {
+      if (!region) {
+        return breakdown;
+      }
+
+      // Check for deposit bonus
+      if (region.deposit?.type === itemCode && region.deposit?.bonusPercent) {
+        breakdown.deposit = {
+          bonus: region.deposit.bonusPercent,
+          depositType: region.deposit.type,
+          endsAt: region.deposit.endsAt,
+        };
+        breakdown.total += region.deposit.bonusPercent;
+      }
+
+      if (!region.country) {
         return breakdown;
       }
 

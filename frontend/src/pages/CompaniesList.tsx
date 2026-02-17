@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { formatBonus } from '../utils/format'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
@@ -78,7 +79,7 @@ function SortableCompanyCard({ company }: { company: Company }) {
             {company.productionBonus ? (
               <ProductionBonusTooltip bonus={company.productionBonus}>
                 <p className="font-semibold text-green-400 cursor-help">
-                  +{company.productionBonus.total.toFixed(1)}%
+                  {formatBonus(company.productionBonus.total)}
                 </p>
               </ProductionBonusTooltip>
             ) : (

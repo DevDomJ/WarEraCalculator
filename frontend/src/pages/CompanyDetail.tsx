@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { formatBonus } from '../utils/format'
 import { useParams, useNavigate } from 'react-router-dom'
 import { companyApi, itemsApi } from '../api/client'
 import ItemIcon from '../components/ItemIcon'
@@ -94,7 +95,7 @@ export default function CompanyDetail() {
             {company.productionBonus ? (
               <ProductionBonusTooltip bonus={company.productionBonus}>
                 <p className="text-xl font-bold text-green-400 cursor-help">
-                  +{company.productionBonus.total.toFixed(1)}%
+                  {formatBonus(company.productionBonus.total)}
                 </p>
               </ProductionBonusTooltip>
             ) : (

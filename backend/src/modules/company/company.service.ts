@@ -12,6 +12,12 @@ export interface ProductionBonusBreakdown {
     countryCode: string;
     specializedItem: string;
   };
+  deposit?: {
+    bonus: number;
+    depositType: string;
+    /** ISO 8601 date string indicating when the deposit bonus expires */
+    endsAt: string;
+  };
   party?: {
     bonus: number;
     partyName: string;
@@ -25,6 +31,7 @@ export interface ProfitMetricsBase {
   dailyInputCost: number;
   profitSelfProduction: number;
   profitWithTrade: number;
+  costPerUnit: number;
 }
 
 export interface DailyProfitMetrics extends ProfitMetricsBase {
@@ -131,6 +138,10 @@ export class CompanyService {
     const dailyWage = workers.reduce((sum, w) => sum + (w.dailyWage || 0), 0);
     const dailyInputCost = await this.calculateInputCost(outputItemCode, dailyOutput);
     
+    const totalCosts = dailyWage + dailyInputCost;
+    // Cost per unit includes both wage and input costs for worker production
+    const costPerUnit = dailyOutput > 0 ? totalCosts / dailyOutput : 0;
+    
     return {
       dailyOutput,
       dailyRevenue,
@@ -138,6 +149,7 @@ export class CompanyService {
       dailyInputCost,
       profitSelfProduction: dailyRevenue - dailyWage,
       profitWithTrade: dailyRevenue - dailyWage - dailyInputCost,
+      costPerUnit,
     };
   }
 
@@ -160,12 +172,16 @@ export class CompanyService {
     const dailyRevenue = dailyOutput * outputPrice;
     const dailyInputCost = await this.calculateInputCost(outputItemCode, dailyOutput);
     
+    // Cost per unit only includes input costs (automation has no wage)
+    const costPerUnit = dailyOutput > 0 ? dailyInputCost / dailyOutput : 0;
+    
     return {
       dailyOutput,
       dailyRevenue,
       dailyInputCost,
       profitSelfProduction: dailyRevenue,
       profitWithTrade: dailyRevenue - dailyInputCost,
+      costPerUnit,
     };
   }
 
@@ -509,13 +525,19 @@ export class CompanyService {
     // Calculate total daily profit metrics (sum of worker + automation)
     let dailyProfitMetrics: DailyProfitMetrics | null = null;
     if (workerProfitMetrics || automationProfitMetrics) {
+      const totalDailyOutput = (workerProfitMetrics?.dailyOutput || 0) + (automationProfitMetrics?.dailyOutput || 0);
+      const totalDailyWage = workerProfitMetrics?.dailyWage || 0;
+      const totalDailyInputCost = (workerProfitMetrics?.dailyInputCost || 0) + (automationProfitMetrics?.dailyInputCost || 0);
+      const totalCosts = totalDailyWage + totalDailyInputCost;
+      
       dailyProfitMetrics = {
-        dailyOutput: (workerProfitMetrics?.dailyOutput || 0) + (automationProfitMetrics?.dailyOutput || 0),
+        dailyOutput: totalDailyOutput,
         dailyRevenue: (workerProfitMetrics?.dailyRevenue || 0) + (automationProfitMetrics?.dailyRevenue || 0),
-        dailyWage: workerProfitMetrics?.dailyWage || 0,
-        dailyInputCost: (workerProfitMetrics?.dailyInputCost || 0) + (automationProfitMetrics?.dailyInputCost || 0),
+        dailyWage: totalDailyWage,
+        dailyInputCost: totalDailyInputCost,
         profitSelfProduction: (workerProfitMetrics?.profitSelfProduction || 0) + (automationProfitMetrics?.profitSelfProduction || 0),
         profitWithTrade: (workerProfitMetrics?.profitWithTrade || 0) + (automationProfitMetrics?.profitWithTrade || 0),
+        costPerUnit: totalDailyOutput > 0 ? totalCosts / totalDailyOutput : 0,
       };
     }
     
