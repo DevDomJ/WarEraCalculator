@@ -73,8 +73,7 @@ export interface ProfitMetricsBase {
   dailyOutput: number
   dailyRevenue: number
   dailyInputCost: number
-  profitSelfProduction: number
-  profitWithTrade: number
+  profit: number
   costPerUnit: number
 }
 
@@ -88,6 +87,18 @@ export interface WorkerProfitMetrics extends ProfitMetricsBase {
 
 export interface AutomationProfitMetrics extends ProfitMetricsBase {
   // No wage for automation
+}
+
+export interface CompaniesSummary {
+  totalDailyRevenue: number
+  totalDailyWage: number
+  totalDailyInputCost: number
+  totalDailyProfit: number
+}
+
+export interface CompaniesResponse {
+  companies: Company[]
+  summary: CompaniesSummary
 }
 
 export interface Company {
@@ -159,9 +170,9 @@ export const companyApi = {
   fetchByUserId: (userId: string) => 
     api.post<Company[]>('/companies/fetch', { userId }).then(res => res.data),
   getByUserId: (userId: string) => 
-    api.get<Company[]>(`/companies/user/${userId}`).then(res => res.data),
+    api.get<CompaniesResponse>(`/companies/user/${userId}`).then(res => res.data),
   refreshByUserId: (userId: string) =>
-    api.post<Company[]>(`/companies/user/${userId}/refresh`).then(res => res.data),
+    api.post<CompaniesResponse>(`/companies/user/${userId}/refresh`).then(res => res.data),
   getById: (id: string) => 
     api.get<Company>(`/companies/${id}`).then(res => res.data),
   refresh: (id: string) =>

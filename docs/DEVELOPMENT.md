@@ -90,7 +90,7 @@ backend/src/modules/    # NestJS feature modules (12 modules)
 backend/src/config/     # Static configuration (categories, display names, ethics)
 backend/prisma/         # Database schema & migrations
 frontend/src/pages/     # Page-level React components (4 pages)
-frontend/src/components/# Reusable React components (6 components)
+frontend/src/components/# Reusable React components (7 components)
 frontend/src/api/       # API client with TypeScript interfaces
 frontend/src/utils/     # Formatting utilities
 ```
@@ -200,7 +200,7 @@ npx prisma migrate dev --name descriptive_name
 | GET | `/api/prices/:itemCode/orders` | Current buy/sell orders |
 | POST | `/api/data-collection/trigger` | Manually trigger data collection |
 | POST | `/api/companies/fetch` | Fetch companies from WarEra API by userId |
-| GET | `/api/companies/user/:userId` | Get cached companies with production bonuses |
+| GET | `/api/companies/user/:userId` | Get cached companies with profit metrics and summary |
 | POST | `/api/companies/user/:userId/refresh` | Refresh companies from API |
 | GET | `/api/companies/:id` | Get single company with production bonus |
 | POST | `/api/companies/:id/refresh` | Refresh single company from API |

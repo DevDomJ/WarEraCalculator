@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { formatBonus } from '../utils/format'
+import { formatBonus, formatCurrency } from '../utils/format'
 import { useParams, useNavigate } from 'react-router-dom'
 import { companyApi, itemsApi } from '../api/client'
 import ItemIcon from '../components/ItemIcon'
@@ -88,7 +88,7 @@ export default function CompanyDetail() {
           </div>
           <div>
             <p className="text-sm text-gray-400">Total Daily Wage</p>
-            <p className="text-xl font-bold text-white">{(company.totalDailyWage || 0).toFixed(3)} €</p>
+            <p className="text-xl font-bold text-white">{formatCurrency(company.totalDailyWage || 0)}</p>
           </div>
           <div>
             <p className="text-sm text-gray-400">Production Bonus</p>
@@ -179,8 +179,8 @@ export default function CompanyDetail() {
                           </div>
                         </div>
                       </td>
-                      <td className="text-right py-2 px-2 text-white">{worker.wage.toFixed(3)} €</td>
-                      <td className="text-right py-2 px-2 text-white">{(worker.dailyWage || 0).toFixed(3)} €</td>
+                      <td className="text-right py-2 px-2 text-white">{formatCurrency(worker.wage)}</td>
+                      <td className="text-right py-2 px-2 text-white">{formatCurrency(worker.dailyWage || 0)}</td>
                       <td className="text-right py-2 px-2 text-white">{(worker.paidProduction || 0).toFixed(2)}</td>
                       <td className="text-right py-2 px-2 text-white">{(worker.totalProduction || 0).toFixed(2)}</td>
                       <td className="text-right py-2 px-2 text-white">{(worker.outputUnits || 0).toFixed(2)}</td>
@@ -189,10 +189,10 @@ export default function CompanyDetail() {
                   <tr className="border-t-2 border-gray-500 font-bold bg-gray-700/30">
                     <td className="py-2 px-2 text-white">Total</td>
                     <td className="text-right py-2 px-2 text-white">
-                      {workers.reduce((sum: number, w: any) => sum + (w.wage || 0), 0).toFixed(3)} €
+                      {formatCurrency(workers.reduce((sum: number, w: any) => sum + (w.wage || 0), 0))}
                     </td>
                     <td className="text-right py-2 px-2 text-white">
-                      {workers.reduce((sum: number, w: any) => sum + (w.dailyWage || 0), 0).toFixed(3)} €
+                      {formatCurrency(workers.reduce((sum: number, w: any) => sum + (w.dailyWage || 0), 0))}
                     </td>
                     <td className="text-right py-2 px-2 text-white">
                       {workers.reduce((sum: number, w: any) => sum + (w.paidProduction || 0), 0).toFixed(2)}

@@ -152,7 +152,8 @@ WarEraCalculator/
     │   │   ├── ProductionTracker.tsx          # Daily production input
     │   │   ├── ProductionHistoryChart.tsx     # Production history chart
     │   │   ├── ProductionBonusTooltip.tsx     # Bonus breakdown tooltip
-    │   │   ├── ProfitSection.tsx              # Profit scenario display
+    │   │   ├── ProfitSection.tsx              # Profit metrics display
+    │   │   ├── CompaniesSummary.tsx           # Aggregated profit summary card
     │   │   ├── InfoTooltip.tsx                # Reusable info tooltip
     │   │   └── ItemIcon.tsx                   # Reusable item icon
     │   ├── utils/

@@ -1,5 +1,6 @@
 import InfoTooltip from './InfoTooltip'
 import { ProfitMetricsBase } from '../api/client'
+import { formatCurrency } from '../utils/format'
 
 interface ProfitMetrics extends ProfitMetricsBase {
   dailyWage?: number
@@ -38,14 +39,14 @@ export default function ProfitSection({ title, metrics, outputItemName, showWage
         <div>
           <p className="text-xs text-gray-400">Daily Revenue</p>
           <p className="text-lg font-bold text-green-400">
-            {metrics.dailyRevenue.toFixed(3)} €
+            {formatCurrency(metrics.dailyRevenue)}
           </p>
         </div>
         <div>
           <p className="text-xs text-gray-400">Cost/Unit</p>
           <InfoTooltip content={showWage ? "Total costs (wage + inputs) per unit produced" : "Input costs per unit produced"}>
             <p className="text-lg font-bold text-orange-400 cursor-help">
-              {metrics.costPerUnit.toFixed(3)} €
+              {formatCurrency(metrics.costPerUnit)}
             </p>
           </InfoTooltip>
         </div>
@@ -53,44 +54,23 @@ export default function ProfitSection({ title, metrics, outputItemName, showWage
           <div>
             <p className="text-xs text-gray-400">Daily Input Cost</p>
             <p className="text-lg font-bold text-orange-400">
-              {metrics.dailyInputCost.toFixed(3)} €
+              {formatCurrency(metrics.dailyInputCost)}
             </p>
           </div>
         )}
-        {hasInputCost ? (
-          <>
-            <div>
-              <p className="text-xs text-gray-400">Profit (Self-Production)</p>
-              <InfoTooltip content={showWage ? "Revenue - Wage" : "Revenue"}>
-                <p className={`text-lg font-bold cursor-help ${metrics.profitSelfProduction >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {metrics.profitSelfProduction.toFixed(3)} €
-                </p>
-              </InfoTooltip>
-            </div>
-            <div>
-              <p className="text-xs text-gray-400">Profit (Trade)</p>
-              <InfoTooltip content={showWage ? "Revenue - Wage - Input Cost" : "Revenue - Input Cost"}>
-                <p className={`text-lg font-bold cursor-help ${metrics.profitWithTrade >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {metrics.profitWithTrade.toFixed(3)} €
-                </p>
-              </InfoTooltip>
-            </div>
-          </>
-        ) : (
-          <div>
-            <p className="text-xs text-gray-400">Profit</p>
-            <InfoTooltip content={showWage ? "Revenue - Wage" : "Revenue"}>
-              <p className={`text-lg font-bold cursor-help ${metrics.profitSelfProduction >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {metrics.profitSelfProduction.toFixed(3)} €
-              </p>
-            </InfoTooltip>
-          </div>
-        )}
+        <div>
+          <p className="text-xs text-gray-400">Profit</p>
+          <InfoTooltip content={showWage ? (hasInputCost ? "Revenue - Wage - Input Cost" : "Revenue - Wage") : (hasInputCost ? "Revenue - Input Cost" : "Revenue")}>
+            <p className={`text-lg font-bold cursor-help ${metrics.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {formatCurrency(metrics.profit)}
+            </p>
+          </InfoTooltip>
+        </div>
         {showWage && metrics.dailyWage !== undefined && (
           <div>
             <p className="text-xs text-gray-400">Daily Wage</p>
             <p className="text-lg font-bold text-yellow-400">
-              {metrics.dailyWage.toFixed(3)} €
+              {formatCurrency(metrics.dailyWage)}
             </p>
           </div>
         )}

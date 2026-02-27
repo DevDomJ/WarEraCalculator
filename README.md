@@ -124,7 +124,7 @@ WarEraApplication/
 │   └── prisma/        # Database schema & migrations
 ├── frontend/          # React + Vite frontend
 │   ├── src/pages/     # 4 page components
-│   ├── src/components/# 6 reusable components
+│   ├── src/components/# 7 reusable components
 │   └── src/api/       # API client
 └── docs/              # Project documentation
 ```
@@ -174,7 +174,7 @@ For the full directory tree, see [docs/PROJECT.md](docs/PROJECT.md#project-struc
 - Company API integration (fetch by userId)
 - Production recipes configuration (JSON)
 - Production metrics calculator
-- Profit scenario calculator (buy vs self-produce)
+- Profit calculator (daily profit per company)
 - REST API endpoints for companies and production
 
 ### Phase 7: Company Management Frontend ✅
@@ -182,7 +182,7 @@ For the full directory tree, see [docs/PROJECT.md](docs/PROJECT.md#project-struc
 - Companies list page
 - Company detail page with metrics
 - Production calculator with formulas
-- Profit comparison (Scenario A vs B)
+- Profit display and aggregated summary
 
 ### Phase 8: Production History & Analytics ✅
 - Production tracking (actual vs expected)

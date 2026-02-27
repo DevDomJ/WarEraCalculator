@@ -1,4 +1,5 @@
 import { Injectable, Logger, forwardRef, Inject } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { WarEraApiService } from '../warera-api/warera-api.service';
 import { PrismaService } from '../../prisma.service';
 import { ProductionBonusService } from '../production-bonus/production-bonus.service';
@@ -29,8 +30,7 @@ export interface ProfitMetricsBase {
   dailyOutput: number;
   dailyRevenue: number;
   dailyInputCost: number;
-  profitSelfProduction: number;
-  profitWithTrade: number;
+  profit: number;
   costPerUnit: number;
 }
 
@@ -44,6 +44,13 @@ export interface WorkerProfitMetrics extends ProfitMetricsBase {
 
 export interface AutomationProfitMetrics extends ProfitMetricsBase {
   // No wage for automation
+}
+
+export interface CompaniesSummary {
+  totalDailyRevenue: number;
+  totalDailyWage: number;
+  totalDailyInputCost: number;
+  totalDailyProfit: number;
 }
 
 export interface CompanyData {
@@ -147,8 +154,7 @@ export class CompanyService {
       dailyRevenue,
       dailyWage,
       dailyInputCost,
-      profitSelfProduction: dailyRevenue - dailyWage,
-      profitWithTrade: dailyRevenue - dailyWage - dailyInputCost,
+      profit: dailyRevenue - dailyWage - dailyInputCost,
       costPerUnit,
     };
   }
@@ -179,8 +185,7 @@ export class CompanyService {
       dailyOutput,
       dailyRevenue,
       dailyInputCost,
-      profitSelfProduction: dailyRevenue,
-      profitWithTrade: dailyRevenue - dailyInputCost,
+      profit: dailyRevenue - dailyInputCost,
       costPerUnit,
     };
   }
@@ -476,7 +481,7 @@ export class CompanyService {
     }
   }
 
-  async getCompanyById(companyId: string): Promise<CompanyData | null> {
+  async getCompanyById(companyId: string, forceRefreshBonus = false): Promise<CompanyData | null> {
     const company = await this.prisma.company.findUnique({ 
       where: { companyId },
       include: { workers: true }
@@ -484,10 +489,18 @@ export class CompanyService {
     
     if (!company) return null;
     
+    return this.enrichCompanyWithMetrics(company, forceRefreshBonus);
+  }
+
+  private async enrichCompanyWithMetrics(
+    company: Prisma.CompanyGetPayload<{ include: { workers: true } }>,
+    forceRefreshBonus = false,
+  ): Promise<CompanyData> {
     // Get production bonus
     const productionBonus = await this.productionBonusService.calculateProductionBonus(
       company.region,
       company.type,
+      forceRefreshBonus,
     );
     const bonusMultiplier = productionBonus.total / 100;
     
@@ -535,8 +548,7 @@ export class CompanyService {
         dailyRevenue: (workerProfitMetrics?.dailyRevenue || 0) + (automationProfitMetrics?.dailyRevenue || 0),
         dailyWage: totalDailyWage,
         dailyInputCost: totalDailyInputCost,
-        profitSelfProduction: (workerProfitMetrics?.profitSelfProduction || 0) + (automationProfitMetrics?.profitSelfProduction || 0),
-        profitWithTrade: (workerProfitMetrics?.profitWithTrade || 0) + (automationProfitMetrics?.profitWithTrade || 0),
+        profit: (workerProfitMetrics?.profit || 0) + (automationProfitMetrics?.profit || 0),
         costPerUnit: totalDailyOutput > 0 ? totalCosts / totalDailyOutput : 0,
       };
     }
@@ -552,31 +564,23 @@ export class CompanyService {
     };
   }
 
-  async getCompaniesByUserId(userId: string): Promise<CompanyData[]> {
-    const companies = await this.prisma.company.findMany({ 
+  async getCompaniesByUserId(userId: string, forceRefreshBonus = false): Promise<{ companies: CompanyData[]; summary: CompaniesSummary }> {
+    const dbCompanies = await this.prisma.company.findMany({ 
       where: { userId },
       include: { workers: true },
       orderBy: { displayOrder: 'asc' }
     });
     
-    return companies.map(company => {
-      const workers = company.workers.map(w => ({
-        workerId: w.workerId,
-        userId: w.userId,
-        username: w.username,
-        avatarUrl: w.avatarUrl,
-        wage: w.wage,
-        maxEnergy: w.maxEnergy,
-        production: w.production,
-        fidelity: w.fidelity,
-      }));
-      
-      return {
-        ...company,
-        workers,
-        totalDailyWage: this.calculateTotalDailyWage(workers),
-      };
-    });
+    const companies = await Promise.all(dbCompanies.map(company => this.enrichCompanyWithMetrics(company, forceRefreshBonus)));
+
+    const summary: CompaniesSummary = {
+      totalDailyRevenue: companies.reduce((sum, c) => sum + (c.dailyProfitMetrics?.dailyRevenue || 0), 0),
+      totalDailyWage: companies.reduce((sum, c) => sum + (c.totalDailyWage || 0), 0),
+      totalDailyInputCost: companies.reduce((sum, c) => sum + (c.dailyProfitMetrics?.dailyInputCost || 0), 0),
+      totalDailyProfit: companies.reduce((sum, c) => sum + (c.dailyProfitMetrics?.profit || 0), 0),
+    };
+
+    return { companies, summary };
   }
 
   async updateCompanyOrder(companyIds: string[]): Promise<void> {

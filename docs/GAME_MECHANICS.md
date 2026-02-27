@@ -158,26 +158,25 @@ Effective Salary Cost = Base Salary × (1 + salary_tax_rate)
 
 ## Profit Calculation
 
-### Scenario A: Buy Inputs from Market
+### Daily Profit
 
 ```
 Profit = Revenue - Input Costs - Wage Costs
 
 Where:
-  Revenue     = Output Units × Output Price × (1 + Production Bonus)
-  Input Costs = Σ (Input Item Market Price × Input Quantity Required)
+  Revenue     = Daily Output × Output Price
+  Input Costs = Daily Output × Σ (Input Item Market Price × Input Quantity Per Unit)
   Wage Costs  = Total Daily Wages for workers
 ```
 
-### Scenario B: Self-Produce Inputs
-
+For raw material producers (no input items required):
 ```
-Profit = Revenue - Total Production Costs
+Profit = Revenue - Wage Costs
+```
 
-Where:
-  Revenue              = Output Units × Output Price × (1 + Production Bonus)
-  Total Production Costs = Input Production Costs + Output Wage Costs
-  Input Production Costs = Raw material costs + Input factory wages
+For automated production (no workers):
+```
+Profit = Revenue - Input Costs
 ```
 
 ### Profit Per Unit

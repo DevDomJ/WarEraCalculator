@@ -165,13 +165,17 @@ Players need to calculate whether producing and selling a specific item is profi
 ### Implementation
 - Backend: `ProductionCalculatorService` with recipe-based calculations
 - **Production metrics**: PP per work, work actions per day, total PP per day
-- **Profit scenarios**:
-  - Scenario A: Buy input materials from market
-  - Scenario B: Self-produce input materials
+- **Profit calculation**: Single profit value per company (Revenue - Wages - Input Costs)
+  - For raw material producers (no inputs): Profit = Revenue - Wages
+  - For advanced ware producers: Profit = Revenue - Wages - Input Costs (buying inputs from market)
+  - Self-production profit is not calculated separately — if you self-produce inputs, that profit shows on the input-producing company
 - REST API: `GET /api/production/:companyId/profit?outputItem=X`
-- Frontend: `CompanyDetail` page with `ProfitSection` component showing side-by-side comparison
+- Frontend: `CompanyDetail` page with `ProfitSection` component showing profit analysis
 - Uses real-time market prices as defaults
 - Production bonus adjustable via interactive input
+
+### Design Decisions
+- **Single profit model**: Originally had two scenarios (buy inputs vs self-produce). Consolidated to a single profit value because self-production profit is already captured by the input-producing company. Showing both double-counted the value.
 
 ### Game Mechanics Reference
 See [GAME_MECHANICS.md](./GAME_MECHANICS.md) for the formulas and rules governing production costs and revenue.
@@ -277,7 +281,7 @@ Players need to view and manage their companies, see worker details, and underst
   - `GET /api/companies/:id` — Get single company
   - `POST /api/companies/:id/refresh` — Refresh single company
   - `POST /api/companies/reorder` — Reorder companies (drag & drop)
-- Frontend: `CompaniesList` page with drag & drop reordering (@dnd-kit), `CompanyDetail` page with full metrics
+- Frontend: `CompaniesList` page with drag & drop reordering (@dnd-kit), daily profit per company card, aggregated summary card (`CompaniesSummary` component), `CompanyDetail` page with full metrics
 - User ID stored in localStorage for persistence
 
 ---

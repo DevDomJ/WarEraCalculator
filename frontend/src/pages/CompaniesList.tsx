@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
-import { formatBonus } from '../utils/format'
+import { formatBonus, formatCurrency } from '../utils/format'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { companyApi, Company } from '../api/client'
+import { companyApi, Company, CompaniesSummary as CompaniesSummaryType } from '../api/client'
 import ItemIcon from '../components/ItemIcon'
 import ProductionBonusTooltip from '../components/ProductionBonusTooltip'
+import CompaniesSummary from '../components/CompaniesSummary'
 
 function SortableCompanyCard({ company }: { company: Company }) {
   const navigate = useNavigate()
@@ -59,13 +60,13 @@ function SortableCompanyCard({ company }: { company: Company }) {
             <p className="text-lg font-bold text-white">{workers.length}</p>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-4 mt-4">
+        <div className="grid grid-cols-4 gap-4 mt-4">
           <div>
             <p className="text-sm text-gray-400">Wage/Worker</p>
             <p className="font-semibold text-gray-200">
               {workers.length === 0 ? 'No workers' :
-               allSameWage ? `${minWage.toFixed(3)} €` :
-               `${minWage.toFixed(3)} € - ${maxWage.toFixed(3)} €`}
+               allSameWage ? formatCurrency(minWage) :
+               `${formatCurrency(minWage)} - ${formatCurrency(maxWage)}`}
             </p>
           </div>
           <div>
@@ -86,6 +87,16 @@ function SortableCompanyCard({ company }: { company: Company }) {
               <p className="font-semibold text-gray-500">N/A</p>
             )}
           </div>
+          <div>
+            <p className="text-sm text-gray-400">Daily Profit</p>
+            {company.dailyProfitMetrics ? (
+              <p className={`font-semibold ${company.dailyProfitMetrics.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {formatCurrency(company.dailyProfitMetrics.profit)}
+              </p>
+            ) : (
+              <p className="font-semibold text-gray-500">N/A</p>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -97,6 +108,7 @@ export default function CompaniesList() {
   const [userId, setUserId] = useState(localStorage.getItem('userId') || '')
   const [inputUserId, setInputUserId] = useState('')
   const [localCompanies, setLocalCompanies] = useState<Company[]>([])
+  const [summary, setSummary] = useState<CompaniesSummaryType | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -105,17 +117,18 @@ export default function CompaniesList() {
     })
   )
 
-  const { data: companies, isLoading, refetch, error } = useQuery({
+  const { data, isLoading, refetch, error } = useQuery({
     queryKey: ['companies', userId],
     queryFn: () => companyApi.getByUserId(userId),
     enabled: !!userId,
   })
 
   useEffect(() => {
-    if (companies) {
-      setLocalCompanies(companies)
+    if (data) {
+      setLocalCompanies(data.companies)
+      setSummary(data.summary)
     }
-  }, [companies])
+  }, [data])
 
   const reorderMutation = useMutation({
     mutationFn: (companyIds: string[]) => companyApi.reorder(companyIds),
@@ -203,6 +216,10 @@ export default function CompaniesList() {
       </div>
 
       {isLoading && <div className="text-center py-8 text-gray-300">Loading...</div>}
+
+      {summary && localCompanies.some(c => c.dailyProfitMetrics) && (
+        <CompaniesSummary summary={summary} />
+      )}
 
       <DndContext
         sensors={sensors}
