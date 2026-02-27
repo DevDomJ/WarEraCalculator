@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { formatBonus, formatCurrency } from '../utils/format'
+import { formatBonus } from '../utils/format'
+import CurrencyValue from '../components/CurrencyValue'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
@@ -65,8 +66,8 @@ function SortableCompanyCard({ company }: { company: Company }) {
             <p className="text-sm text-gray-400">Wage/Worker</p>
             <p className="font-semibold text-gray-200">
               {workers.length === 0 ? 'No workers' :
-               allSameWage ? formatCurrency(minWage) :
-               `${formatCurrency(minWage)} - ${formatCurrency(maxWage)}`}
+               allSameWage ? <CurrencyValue value={minWage} /> :
+               <><CurrencyValue value={minWage} /> - <CurrencyValue value={maxWage} /></>}
             </p>
           </div>
           <div>
@@ -91,7 +92,7 @@ function SortableCompanyCard({ company }: { company: Company }) {
             <p className="text-sm text-gray-400">Daily Profit</p>
             {company.dailyProfitMetrics ? (
               <p className={`font-semibold ${company.dailyProfitMetrics.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {formatCurrency(company.dailyProfitMetrics.profit)}
+                <CurrencyValue value={company.dailyProfitMetrics.profit} />
               </p>
             ) : (
               <p className="font-semibold text-gray-500">N/A</p>

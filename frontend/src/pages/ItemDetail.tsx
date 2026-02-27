@@ -3,8 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, BarChart, Bar } from 'recharts'
 import { itemsApi, pricesApi } from '../api/client'
 import { useState, useMemo } from 'react'
-import { formatCurrency } from '../utils/format'
+import { formatCurrencyString } from '../utils/format'
 import ItemIcon from '../components/ItemIcon'
+import CurrencyValue from '../components/CurrencyValue'
 
 type TimeInterval = 'day' | 'week' | '2weeks' | 'month'
 
@@ -188,7 +189,7 @@ export default function ItemDetail() {
 
   const formatTooltip = (value: any) => {
     if (typeof value === 'number') {
-      return formatCurrency(value)
+      return formatCurrencyString(value)
     }
     return value
   }
@@ -212,7 +213,7 @@ export default function ItemDetail() {
         </div>
         {item.currentPrice && (
           <p className="text-2xl font-bold text-green-400">
-            Current Price: {formatCurrency(item.currentPrice)}
+            Current Price: <CurrencyValue value={item.currentPrice} />
           </p>
         )}
       </div>
@@ -323,7 +324,7 @@ export default function ItemDetail() {
             <tbody>
               {orders?.buyOrders.map(order => (
                 <tr key={order.id} className="border-b border-gray-700">
-                  <td className="py-2 text-gray-200">{formatCurrency(order.price)}</td>
+                  <td className="py-2 text-gray-200"><CurrencyValue value={order.price} /></td>
                   <td className="text-right py-2 text-gray-200">{order.quantity}</td>
                 </tr>
               ))}
@@ -343,7 +344,7 @@ export default function ItemDetail() {
             <tbody>
               {orders?.sellOrders.map(order => (
                 <tr key={order.id} className="border-b border-gray-700">
-                  <td className="py-2 text-gray-200">{formatCurrency(order.price)}</td>
+                  <td className="py-2 text-gray-200"><CurrencyValue value={order.price} /></td>
                   <td className="text-right py-2 text-gray-200">{order.quantity}</td>
                 </tr>
               ))}

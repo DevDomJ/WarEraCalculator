@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { itemsApi } from '../api/client'
 import ItemIcon from '../components/ItemIcon'
-import { formatCurrency } from '../utils/format'
+import CurrencyValue from '../components/CurrencyValue'
 
 export default function GoodsOverview() {
   const navigate = useNavigate()
@@ -44,7 +44,7 @@ export default function GoodsOverview() {
                   <p className="text-sm text-gray-400">{item.code}</p>
                   {item.currentPrice && (
                     <p className="text-lg font-bold text-green-400 mt-1">
-                      {formatCurrency(item.currentPrice)}
+                      <CurrencyValue value={item.currentPrice} />
                     </p>
                   )}
                 </div>
@@ -93,7 +93,7 @@ export default function GoodsOverview() {
                       <p className="text-sm text-gray-400">{item.code}</p>
                       {item.currentPrice && (
                         <p className="text-lg font-bold text-green-400 mt-1">
-                          {formatCurrency(item.currentPrice)}
+                          <CurrencyValue value={item.currentPrice} />
                         </p>
                       )}
                     </div>
@@ -128,7 +128,7 @@ export default function GoodsOverview() {
                       <p className="text-sm text-gray-400">{item.code}</p>
                       {item.currentPrice && (
                         <p className="text-lg font-bold text-green-400 mt-1">
-                          {formatCurrency(item.currentPrice)}
+                          <CurrencyValue value={item.currentPrice} />
                         </p>
                       )}
                     </div>

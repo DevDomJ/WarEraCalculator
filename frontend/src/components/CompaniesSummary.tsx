@@ -1,5 +1,5 @@
 import { CompaniesSummary as CompaniesSummaryType } from '../api/client'
-import { formatCurrency } from '../utils/format'
+import CurrencyValue from './CurrencyValue'
 
 /**
  * Displays aggregated profit summary across all companies.
@@ -14,20 +14,20 @@ export default function CompaniesSummary({ summary }: { summary: CompaniesSummar
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div>
           <p className="text-sm text-gray-400">Total Daily Revenue</p>
-          <p className="text-xl font-bold text-green-400">{formatCurrency(summary.totalDailyRevenue)}</p>
+          <p className="text-xl font-bold text-green-400"><CurrencyValue value={summary.totalDailyRevenue} /></p>
         </div>
         <div>
           <p className="text-sm text-gray-400">Total Daily Wages</p>
-          <p className="text-xl font-bold text-yellow-400">{formatCurrency(summary.totalDailyWage)}</p>
+          <p className="text-xl font-bold text-yellow-400"><CurrencyValue value={summary.totalDailyWage} /></p>
         </div>
         <div>
           <p className="text-sm text-gray-400">Total Daily Input Cost</p>
-          <p className="text-xl font-bold text-orange-400">{formatCurrency(summary.totalDailyInputCost)}</p>
+          <p className="text-xl font-bold text-orange-400"><CurrencyValue value={summary.totalDailyInputCost} /></p>
         </div>
         <div>
           <p className="text-sm text-gray-400">Total Daily Profit</p>
           <p className={`text-xl font-bold ${summary.totalDailyProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-            {formatCurrency(summary.totalDailyProfit)}
+            <CurrencyValue value={summary.totalDailyProfit} />
           </p>
         </div>
       </div>

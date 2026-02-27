@@ -1,6 +1,6 @@
 import InfoTooltip from './InfoTooltip'
+import CurrencyValue from './CurrencyValue'
 import { ProfitMetricsBase } from '../api/client'
-import { formatCurrency } from '../utils/format'
 
 interface ProfitMetrics extends ProfitMetricsBase {
   dailyWage?: number
@@ -39,14 +39,14 @@ export default function ProfitSection({ title, metrics, outputItemName, showWage
         <div>
           <p className="text-xs text-gray-400">Daily Revenue</p>
           <p className="text-lg font-bold text-green-400">
-            {formatCurrency(metrics.dailyRevenue)}
+            <CurrencyValue value={metrics.dailyRevenue} />
           </p>
         </div>
         <div>
           <p className="text-xs text-gray-400">Cost/Unit</p>
           <InfoTooltip content={showWage ? "Total costs (wage + inputs) per unit produced" : "Input costs per unit produced"}>
             <p className="text-lg font-bold text-orange-400 cursor-help">
-              {formatCurrency(metrics.costPerUnit)}
+              <CurrencyValue value={metrics.costPerUnit} />
             </p>
           </InfoTooltip>
         </div>
@@ -54,7 +54,7 @@ export default function ProfitSection({ title, metrics, outputItemName, showWage
           <div>
             <p className="text-xs text-gray-400">Daily Input Cost</p>
             <p className="text-lg font-bold text-orange-400">
-              {formatCurrency(metrics.dailyInputCost)}
+              <CurrencyValue value={metrics.dailyInputCost} />
             </p>
           </div>
         )}
@@ -62,7 +62,7 @@ export default function ProfitSection({ title, metrics, outputItemName, showWage
           <p className="text-xs text-gray-400">Profit</p>
           <InfoTooltip content={showWage ? (hasInputCost ? "Revenue - Wage - Input Cost" : "Revenue - Wage") : (hasInputCost ? "Revenue - Input Cost" : "Revenue")}>
             <p className={`text-lg font-bold cursor-help ${metrics.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-              {formatCurrency(metrics.profit)}
+              <CurrencyValue value={metrics.profit} />
             </p>
           </InfoTooltip>
         </div>
@@ -70,7 +70,7 @@ export default function ProfitSection({ title, metrics, outputItemName, showWage
           <div>
             <p className="text-xs text-gray-400">Daily Wage</p>
             <p className="text-lg font-bold text-yellow-400">
-              {formatCurrency(metrics.dailyWage)}
+              <CurrencyValue value={metrics.dailyWage} />
             </p>
           </div>
         )}
