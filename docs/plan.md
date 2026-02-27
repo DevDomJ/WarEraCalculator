@@ -1,5 +1,7 @@
 # WarEra Calculator - Implementation Plan
 
+> **⚠️ Historical Document:** This was the original phased implementation plan. Phases 1-9 are complete. The actual implementation differs in some areas (e.g., SQLite instead of PostgreSQL, additional features like ethics and production bonuses). See [PROJECT.md](./PROJECT.md) for current feature status and [FEATURES.md](./FEATURES.md) for detailed feature documentation.
+
 ## Phase 1: Project Setup & Infrastructure
 
 ### 1.1 Development Environment Setup

@@ -1,5 +1,7 @@
 # WarEra Calculator - Requirements Specification
 
+> **⚠️ Historical Document:** This was the original requirements specification. The actual implementation differs in key areas — most notably, **SQLite** is used instead of PostgreSQL (see [PROJECT.md](./PROJECT.md) for the rationale). Many features listed as "out of scope" (Section 6) have since been implemented (company management, production calculator). See [FEATURES.md](./FEATURES.md) for current feature status.
+
 ## 1. Project Overview
 
 ### 1.1 Purpose

@@ -1,5 +1,7 @@
 # Technology Stack
 
+> **⚠️ Historical Document:** This was the original technology evaluation from the planning phase. Some recommendations were not followed (e.g., PostgreSQL → SQLite, shadcn/ui not used). See [PROJECT.md](./PROJECT.md) for the actual architecture and [DEVELOPMENT.md](./DEVELOPMENT.md) for the current setup.
+
 ## Overview
 This document outlines the complete technology stack for the WarEra Calculator application, designed to run on a Raspberry Pi and be accessible from PC and mobile devices.
 

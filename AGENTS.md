@@ -100,8 +100,8 @@ See PRODUCTION_DEPLOY.md for detailed deployment instructions (private file, not
 # Development
 cd backend && npx prisma migrate dev --name <migration_name>
 
-# Production (after testing in dev)
-cd backend && DATABASE_URL="file:./prisma/prod.db" npx prisma migrate deploy
+# Production (after testing in dev) — see PRODUCTION_DEPLOY.md for paths
+cd backend && npx prisma migrate deploy
 ```
 
 ## Project Structure
@@ -110,9 +110,10 @@ cd backend && DATABASE_URL="file:./prisma/prod.db" npx prisma migrate deploy
 backend/
 ├── dist/              # Built code (deploy this)
 ├── src/               # Source code
+│   ├── config/        # Static configuration (categories, display names, ethics)
+│   └── modules/       # NestJS feature modules (12 modules)
 ├── prisma/
 │   ├── dev.db        # Dev database (has gaps when dev is offline)
-│   ├── prod.db       # DEPRECATED - do not use
 │   └── schema.prisma # Database schema
 ```
 
@@ -120,8 +121,8 @@ Production structure is documented in PRODUCTION_DEPLOY.md (not in repo).
 
 ## Data Collection
 
-- **Cron jobs** run every hour (XX:05) to collect market prices and trading orders
-- **Price updates** every 5 minutes
+- **Cron jobs** run every 5 minutes to collect market prices and trading orders
+- Collection cycle: game config → trading orders (batched) → prices
 - Production must run continuously to avoid data gaps
 
 ## Key Principles

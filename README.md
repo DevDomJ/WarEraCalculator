@@ -118,44 +118,18 @@ npm run start:prod
 
 ```
 WarEraApplication/
-├── backend/
-│   ├── src/
-│   │   ├── modules/
-│   │   │   ├── warera-api/       # API client with rate limiting
-│   │   │   ├── game-config/      # Game configuration & items
-│   │   │   ├── market-price/     # Price fetching
-│   │   │   ├── trading-order/    # Order fetching
-│   │   │   ├── items/            # Items API
-│   │   │   ├── price-history/    # Price history API
-│   │   │   └── data-collection/  # Cron job scheduler
-│   │   ├── app.module.ts
-│   │   ├── main.ts
-│   │   └── prisma.service.ts
-│   ├── prisma/
-│   │   └── schema.prisma
-│   └── package.json
-├── frontend/
-│   ├── src/
-│   │   ├── api/
-│   │   │   └── client.ts         # API client
-│   │   ├── pages/
-│   │   │   ├── GoodsOverview.tsx # Market overview
-│   │   │   ├── ItemDetail.tsx    # Item detail with charts
-│   │   │   ├── CompaniesList.tsx # Companies list
-│   │   │   └── CompanyDetail.tsx # Company detail
-│   │   ├── components/
-│   │   │   ├── ProductionTracker.tsx
-│   │   │   └── ProductionHistoryChart.tsx
-│   │   ├── utils/
-│   │   │   └── itemNames.ts      # Item name mappings
-│   │   ├── App.tsx
-│   │   └── main.tsx
-│   └── package.json
-└── docs/
-    ├── plan.md
-    ├── requirements.md
-    └── techStack.md
+├── backend/           # NestJS backend (12 modules)
+│   ├── src/modules/   # Feature modules (API, data collection, companies, production)
+│   ├── src/config/    # Static config (categories, display names, ethics)
+│   └── prisma/        # Database schema & migrations
+├── frontend/          # React + Vite frontend
+│   ├── src/pages/     # 4 page components
+│   ├── src/components/# 6 reusable components
+│   └── src/api/       # API client
+└── docs/              # Project documentation
 ```
+
+For the full directory tree, see [docs/PROJECT.md](docs/PROJECT.md#project-structure).
 
 ## Features Implemented
 
@@ -172,10 +146,9 @@ WarEraApplication/
 - Scheduled data collection with cron jobs
 
 ### Phase 3: REST API ✅
-- GET /api/items - List all items with current prices
-- GET /api/items/:code - Get single item details
-- GET /api/prices/:itemCode?days=X - Get price history with volume and order data
-- GET /api/prices/:itemCode/orders - Get current orders
+- REST API for frontend consumption (17 endpoints)
+- Market data, company management, production, and analytics endpoints
+- See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#api-reference) for the full endpoint reference
 
 ### Phase 4: Frontend - Market Overview ✅
 - Goods overview page with category organization (Cases, Craft, Buffs, Ammo, Food, Construction)
