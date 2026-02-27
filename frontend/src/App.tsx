@@ -8,7 +8,7 @@ import MuDetail from './pages/MuDetail'
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-gray-900" style={{ backgroundImage: 'linear-gradient(#111827, #111827)' }}>
       <header className="bg-gray-800 shadow">
         <div className="max-w-7xl mx-auto py-6 px-4">
           <div className="flex justify-between items-center">
