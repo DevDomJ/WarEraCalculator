@@ -195,6 +195,52 @@ export const productionApi = {
     ).then(res => res.data),
 }
 
+export interface MuSummary {
+  id: string
+  name: string
+  avatarUrl?: string
+  memberCount: number
+}
+
+export interface MuMember {
+  userId: string
+  username?: string
+  avatarUrl?: string
+  level?: number
+  militaryRank?: number
+  totalDamage?: number
+  attack?: number
+  isOwner: boolean
+  isCommander: boolean
+  donation: number
+  lastLoginAgo?: string | null
+  inactive: boolean
+}
+
+export interface MuDetail {
+  id: string
+  name: string
+  avatarUrl?: string
+  region: string
+  ownerId: string
+  memberCount: number
+  upgrades: { headquarters: number; dormitories: number }
+  rankings: Record<string, { value: number; rank: number; tier: string }>
+  members: MuMember[]
+}
+
+export interface UserMusResponse {
+  memberOf: MuSummary | null
+  owned: MuSummary[]
+}
+
+export const muApi = {
+  getUserMus: (userId: string) =>
+    api.get<UserMusResponse>(`/mu/user/${userId}`).then(res => res.data),
+  getDetail: (muId: string) =>
+    api.get<MuDetail>(`/mu/${muId}`).then(res => res.data),
+}
+
 export const analyticsApi = {
   trackProduction: (companyId: string, actualPP: number, expectedPP: number) =>
     api.post(`/analytics/${companyId}/track`, { actualPP, expectedPP }).then(res => res.data),

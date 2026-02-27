@@ -3,6 +3,8 @@ import GoodsOverview from './pages/GoodsOverview'
 import ItemDetail from './pages/ItemDetail'
 import CompaniesList from './pages/CompaniesList'
 import CompanyDetail from './pages/CompanyDetail'
+import MuList from './pages/MuList'
+import MuDetail from './pages/MuDetail'
 
 function App() {
   return (
@@ -14,6 +16,7 @@ function App() {
             <nav className="flex gap-4">
               <Link to="/" className="text-blue-400 hover:text-blue-300">Market</Link>
               <Link to="/companies" className="text-blue-400 hover:text-blue-300">Companies</Link>
+              <Link to="/mu" className="text-blue-400 hover:text-blue-300">MU</Link>
             </nav>
           </div>
         </div>
@@ -24,6 +27,8 @@ function App() {
           <Route path="/item/:code" element={<ItemDetail />} />
           <Route path="/companies" element={<CompaniesList />} />
           <Route path="/company/:id" element={<CompanyDetail />} />
+          <Route path="/mu" element={<MuList />} />
+          <Route path="/mu/:muId" element={<MuDetail />} />
         </Routes>
       </main>
     </div>

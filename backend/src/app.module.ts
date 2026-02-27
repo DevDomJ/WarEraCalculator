@@ -15,6 +15,7 @@ import { ProductionCalculatorModule } from './modules/production-calculator/prod
 import { ProductionAnalyticsModule } from './modules/production-analytics/production-analytics.module';
 import { EthicsModule } from './modules/ethics/ethics.module';
 import { ProductionBonusModule } from './modules/production-bonus/production-bonus.module';
+import { MuModule } from './modules/mu/mu.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ProductionBonusModule } from './modules/production-bonus/production-bon
     ProductionAnalyticsModule,
     EthicsModule,
     ProductionBonusModule,
+    MuModule,
   ],
   providers: [PrismaService],
   exports: [PrismaService],
