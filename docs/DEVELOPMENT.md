@@ -86,11 +86,11 @@ For the full project directory tree, see [PROJECT.md — Project Structure](./PR
 Key directories for development:
 
 ```
-backend/src/modules/    # NestJS feature modules (12 modules)
+backend/src/modules/    # NestJS feature modules (13 modules)
 backend/src/config/     # Static configuration (categories, display names, ethics)
 backend/prisma/         # Database schema & migrations
-frontend/src/pages/     # Page-level React components (4 pages)
-frontend/src/components/# Reusable React components (7 components)
+frontend/src/pages/     # Page-level React components (6 pages)
+frontend/src/components/# Reusable React components (9 components)
 frontend/src/api/       # API client with TypeScript interfaces
 frontend/src/utils/     # Formatting utilities
 ```
@@ -211,6 +211,8 @@ npx prisma migrate dev --name descriptive_name
 | POST | `/api/analytics/:companyId/track` | Track daily production |
 | GET | `/api/analytics/:companyId/history?days=X` | Production history |
 | GET | `/api/analytics/:companyId?days=X` | Analytics summary |
+| GET | `/api/mu/user/:userId` | MU membership and owned MUs for a user |
+| GET | `/api/mu/:muId` | MU detail with enriched member stats |
 
 ---
 

@@ -132,7 +132,8 @@ WarEraCalculator/
 │   │   │   ├── production-calculator/# Production metrics & profit
 │   │   │   ├── production-analytics/ # Production tracking & history
 │   │   │   ├── production-bonus/     # Bonus calculation (country, party, deposit)
-│   │   │   └── ethics/               # Party ethics bonus resolution
+│   │   │   ├── ethics/               # Party ethics bonus resolution
+│   │   │   └── mu/                   # Military unit management
 │   │   ├── app.module.ts
 │   │   ├── main.ts
 │   │   └── prisma.service.ts
@@ -147,7 +148,9 @@ WarEraCalculator/
     │   │   ├── GoodsOverview.tsx      # Market overview with categories
     │   │   ├── ItemDetail.tsx         # Item detail with charts & orders
     │   │   ├── CompaniesList.tsx      # Companies list with drag & drop
-    │   │   └── CompanyDetail.tsx      # Company detail with metrics & profit
+    │   │   ├── CompanyDetail.tsx      # Company detail with metrics & profit
+    │   │   ├── MuList.tsx             # Military unit list (membership + owned)
+    │   │   └── MuDetail.tsx           # MU detail with members & stats
     │   ├── components/
     │   │   ├── ProductionTracker.tsx          # Daily production input
     │   │   ├── ProductionHistoryChart.tsx     # Production history chart
@@ -155,7 +158,9 @@ WarEraCalculator/
     │   │   ├── ProfitSection.tsx              # Profit metrics display
     │   │   ├── CompaniesSummary.tsx           # Aggregated profit summary card
     │   │   ├── InfoTooltip.tsx                # Reusable info tooltip
-    │   │   └── ItemIcon.tsx                   # Reusable item icon
+    │   │   ├── ItemIcon.tsx                   # Reusable item icon
+    │   │   ├── CoinIcon.tsx                   # In-game currency coin SVG icon
+    │   │   └── CurrencyValue.tsx              # Formatted currency value with coin icon
     │   ├── utils/
     │   │   └── format.ts             # Formatting utilities
     │   ├── App.tsx
@@ -189,6 +194,7 @@ This table tracks all planned features and their implementation status.
 | F-16 | Production analytics | ✅ Implemented | Track actual vs expected PP, efficiency metrics, 30-day chart |
 | F-17 | Production bonus calculation | ✅ Implemented | Country specialization, party ethics, regional deposits |
 | F-18 | Ethics system integration | ✅ Implemented | Industrialism & agrarianism bonuses from ruling party |
+| F-19 | Military unit (MU) management | ✅ Implemented | MU membership, owned MUs, member stats, donations, inactive detection |
 
 > **For detailed feature documentation including requirements and design decisions, see [FEATURES.md](./FEATURES.md).**
 

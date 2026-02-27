@@ -76,6 +76,10 @@ All data comes from the WarEra API. We need a robust API client that handles aut
 | `/country.getCountryById` | Country data for bonuses | On demand (cached per hour) |
 | `/party.getById` | Party ethics for bonuses | On demand (cached 12 hours) |
 | `/region.getRegionById` | Region data for deposit bonuses | On demand |
+| `/mu.getById` | Military unit details | On demand |
+| `/mu.getManyPaginated` | MU membership/ownership lookup | On demand |
+| `/user.getUserLite` | User profiles (level, stats, last login) | On demand (batched) |
+| `/transaction.getPaginatedTransactions` | MU donation totals (30-day window) | On demand |
 
 ### Design Decisions
 - API key is **never committed** to the repository — stored in `.env` file
@@ -332,6 +336,39 @@ The ruling party's ethics affect production bonuses for certain item categories.
 - **Industrialism**: Grants production bonus to Ammo & Construction categories
 - **Agrarianism**: Grants production bonus to agricultural goods (Food category)
 - Ethics levels range from 0-2, with increasing bonus percentages
+
+---
+
+## F-19: Military Unit (MU) Management
+**Status:** ✅ Implemented
+
+### Requirement
+Players belong to military units (MUs) and need to view MU membership, member activity, combat stats, and donation contributions. MU commanders need to identify inactive members (candidates for removal).
+
+### Implementation
+- Backend: `MuModule` with service and controller
+  - Fetches MU data via `/mu.getManyPaginated` (membership via `memberId`, ownership via `userId`)
+  - Fetches MU detail via `/mu.getById`
+  - Enriches all members with user profiles via batched `/user.getUserLite` calls (up to 25 in one batch)
+  - Calculates 30-day donation totals from `/transaction.getPaginatedTransactions` (stops at 30-day cutoff)
+  - Computes last login time ago and inactive flag (48h+ since last login)
+  - Members sorted: owner first → commanders → by level descending
+- REST API:
+  - `GET /api/mu/user/:userId` — Returns MU membership and owned MUs (summary)
+  - `GET /api/mu/:muId` — Returns full MU detail with enriched member data
+- Frontend:
+  - `MuList` page: Shows "My MU" (the MU the user belongs to) and "Owned MUs" sections
+  - `MuDetail` page: Upgrade levels (HQ, Dormitories), member table with avatars (animated when available), owner/commander badges, level, military rank, total damage, attack, 30-day donations, last login with inactive highlighting (red background for 48h+)
+
+### Design Decisions
+- **30-day donation window**: Donations are fetched from the transaction API (not the inaccurate `investedMoneyByUsers` field). Limited to 30 days to avoid ever-growing pagination (~25 donations/day from daily missions). Transactions come newest-first, so we stop paginating when we hit the cutoff.
+- **No database storage**: MU data is fetched live from the API on each page load. No local caching since the data changes frequently (members join/leave, donations happen daily).
+- **Batch user fetching**: All 25 members fetched in a single tRPC batch request to minimize API calls.
+
+### Known Limitations
+- MU detail page makes ~4 API requests (1 MU detail + 1 user batch + ~2 donation pages), so initial load takes a few seconds
+- No MU member list endpoint exists in the API — members come from the MU object itself
+- `investedMoneyByUsers` from the API is inaccurate and not used
 
 ---
 
