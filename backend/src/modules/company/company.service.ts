@@ -2,28 +2,14 @@ import { Injectable, Logger, forwardRef, Inject } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { WarEraApiService } from '../warera-api/warera-api.service';
 import { PrismaService } from '../../prisma.service';
-import { ProductionBonusService } from '../production-bonus/production-bonus.service';
 import { ProductionCalculatorService } from '../production-calculator/production-calculator.service';
 
 export interface ProductionBonusBreakdown {
   total: number;
-  country?: {
-    bonus: number;
-    countryName: string;
-    countryCode: string;
-    specializedItem: string;
-  };
-  deposit?: {
-    bonus: number;
-    depositType: string;
-    /** ISO 8601 date string indicating when the deposit bonus expires */
-    endsAt: string;
-  };
-  party?: {
-    bonus: number;
-    partyName: string;
-    ethicName: string;
-  };
+  strategicBonus: number;
+  depositBonus: number;
+  ethicSpecializationBonus: number;
+  ethicDepositBonus: number;
 }
 
 export interface ProfitMetricsBase {
@@ -109,11 +95,28 @@ export class CompanyService {
   constructor(
     private readonly apiService: WarEraApiService,
     private readonly prisma: PrismaService,
-    @Inject(forwardRef(() => ProductionBonusService))
-    private readonly productionBonusService: ProductionBonusService,
     @Inject(forwardRef(() => ProductionCalculatorService))
     private readonly productionCalculatorService: ProductionCalculatorService,
   ) {}
+
+  private async fetchProductionBonus(companyId: string): Promise<ProductionBonusBreakdown> {
+    try {
+      const response: any = await this.apiService.request('company.getProductionBonus', { companyId });
+      const data = Array.isArray(response) ? response[0]?.result?.data : response?.result?.data;
+      if (data) {
+        return {
+          total: data.total || 0,
+          strategicBonus: data.strategicBonus || 0,
+          depositBonus: data.depositBonus || 0,
+          ethicSpecializationBonus: data.ethicSpecializationBonus || 0,
+          ethicDepositBonus: data.ethicDepositBonus || 0,
+        };
+      }
+    } catch (error) {
+      this.logger.error(`Failed to fetch production bonus for company ${companyId}: ${error.message}`);
+    }
+    return { total: 0, strategicBonus: 0, depositBonus: 0, ethicSpecializationBonus: 0, ethicDepositBonus: 0 };
+  }
 
   calculateTotalDailyWage(workers: WorkerData[]): number {
     return workers.reduce((sum, w) => {
@@ -419,10 +422,7 @@ export class CompanyService {
           const maxProduction = maxProductionByLevel[storageLevel] || 200;
 
           // Get production bonus for worker calculations
-          const productionBonus = await this.productionBonusService.calculateProductionBonus(
-            company.region,
-            company.itemCode || company.type,
-          );
+          const productionBonus = await this.fetchProductionBonus(company._id || company.id);
           const bonusMultiplier = productionBonus.total / 100;
 
           // Get recipe for output calculation
@@ -508,7 +508,7 @@ export class CompanyService {
     }
   }
 
-  async getCompanyById(companyId: string, forceRefreshBonus = false): Promise<CompanyData | null> {
+  async getCompanyById(companyId: string): Promise<CompanyData | null> {
     const company = await this.prisma.company.findUnique({ 
       where: { companyId },
       include: { workers: true }
@@ -516,19 +516,14 @@ export class CompanyService {
     
     if (!company) return null;
     
-    return this.enrichCompanyWithMetrics(company, forceRefreshBonus);
+    return this.enrichCompanyWithMetrics(company);
   }
 
   private async enrichCompanyWithMetrics(
     company: Prisma.CompanyGetPayload<{ include: { workers: true } }>,
-    forceRefreshBonus = false,
   ): Promise<CompanyData> {
     // Get production bonus
-    const productionBonus = await this.productionBonusService.calculateProductionBonus(
-      company.region,
-      company.type,
-      forceRefreshBonus,
-    );
+    const productionBonus = await this.fetchProductionBonus(company.companyId);
     const bonusMultiplier = productionBonus.total / 100;
     
     // Get recipe for output calculation
@@ -601,14 +596,14 @@ export class CompanyService {
     };
   }
 
-  async getCompaniesByUserId(userId: string, forceRefreshBonus = false): Promise<{ companies: CompanyData[]; summary: CompaniesSummary }> {
+  async getCompaniesByUserId(userId: string): Promise<{ companies: CompanyData[]; summary: CompaniesSummary }> {
     const dbCompanies = await this.prisma.company.findMany({ 
       where: { userId },
       include: { workers: true },
       orderBy: { displayOrder: 'asc' }
     });
     
-    const companies = await Promise.all(dbCompanies.map(company => this.enrichCompanyWithMetrics(company, forceRefreshBonus)));
+    const companies = await Promise.all(dbCompanies.map(company => this.enrichCompanyWithMetrics(company)));
 
     const summary: CompaniesSummary = {
       totalDailyRevenue: companies.reduce((sum, c) => sum + (c.dailyProfitMetrics?.dailyRevenue || 0), 0),

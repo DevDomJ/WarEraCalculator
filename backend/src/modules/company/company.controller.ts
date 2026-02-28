@@ -21,7 +21,7 @@ export class CompanyController {
   @Post('user/:userId/refresh')
   async refreshCompaniesByUser(@Param('userId') userId: string) {
     await this.companyService.fetchCompaniesByUserId(userId);
-    return this.companyService.getCompaniesByUserId(userId, true);
+    return this.companyService.getCompaniesByUserId(userId);
   }
 
   @Get(':id/worker/:workerId/stats')
@@ -45,7 +45,7 @@ export class CompanyController {
       throw new Error('Company not found');
     }
     await this.companyService.fetchCompaniesByUserId(company.userId);
-    return this.companyService.getCompanyById(id, true);
+    return this.companyService.getCompanyById(id);
   }
 
   @Post('reorder')

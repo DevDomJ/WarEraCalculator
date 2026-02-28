@@ -32,16 +32,20 @@ export default function ProductionBonusTooltip({ bonus, children }: ProductionBo
       <div className="invisible group-hover:visible absolute z-10 w-80 p-3 bg-[#1a1a1a] text-white rounded-lg shadow-lg bottom-full left-1/2 transform -translate-x-1/2 mb-2">
         <div className="font-bold mb-2">Production bonus</div>
         
-        {bonus.deposit && (
-          <BonusRow value={bonus.deposit.bonus} description={`deposit resources (${bonus.deposit.depositType})`} />
+        {bonus.strategicBonus > 0 && (
+          <BonusRow value={bonus.strategicBonus} description="strategic resources" />
         )}
         
-        {bonus.country && (
-          <BonusRow value={bonus.country.bonus} description={`${bonus.country.countryName} strategic resources production bonus`} />
+        {bonus.depositBonus > 0 && (
+          <BonusRow value={bonus.depositBonus} description="deposit resources" />
         )}
         
-        {bonus.party && (
-          <BonusRow value={bonus.party.bonus} description={`${bonus.party.ethicName} ethics specialization bonus`} />
+        {bonus.ethicSpecializationBonus > 0 && (
+          <BonusRow value={bonus.ethicSpecializationBonus} description="ethic specialization" />
+        )}
+        
+        {bonus.ethicDepositBonus > 0 && (
+          <BonusRow value={bonus.ethicDepositBonus} description="ethic deposit" />
         )}
         
         {/* Arrow pointing down */}

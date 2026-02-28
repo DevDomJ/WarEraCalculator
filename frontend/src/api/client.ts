@@ -58,23 +58,10 @@ export interface WorkerDailyStat {
 
 export interface ProductionBonusBreakdown {
   total: number
-  country?: {
-    bonus: number
-    countryName: string
-    countryCode: string
-    specializedItem: string
-  }
-  deposit?: {
-    bonus: number
-    depositType: string
-    /** ISO 8601 date string indicating when the deposit bonus expires */
-    endsAt: string
-  }
-  party?: {
-    bonus: number
-    partyName: string
-    ethicName: string
-  }
+  strategicBonus: number
+  depositBonus: number
+  ethicSpecializationBonus: number
+  ethicDepositBonus: number
 }
 
 export interface ProfitMetricsBase {
