@@ -1,5 +1,6 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
+import { parseIntParam } from '../../common/parse-query';
 
 @Controller('prices')
 export class PriceHistoryController {
@@ -10,7 +11,7 @@ export class PriceHistoryController {
     @Param('itemCode') itemCode: string,
     @Query('days') days?: string,
   ) {
-    const daysAgo = parseInt(days || '30');
+    const daysAgo = parseIntParam(days, { default: 30, min: 1, max: 365 });
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - daysAgo);
 

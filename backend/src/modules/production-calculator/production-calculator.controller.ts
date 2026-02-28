@@ -1,5 +1,6 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ProductionCalculatorService, ProductionMetrics, ProfitScenario, Recipe } from './production-calculator.service';
+import { parseFloatParam, parseIntParam } from '../../common/parse-query';
 
 @Controller('production')
 export class ProductionCalculatorController {
@@ -19,9 +20,9 @@ export class ProductionCalculatorController {
   ) {
     return this.calculatorService.calculateProductionMetrics(
       { companyId } as any,
-      parseFloat(productionBonus || '0'),
-      parseFloat(fidelityBonus || '0'),
-      parseInt(maxEnergy || '70'),
+      parseFloatParam(productionBonus, { default: 0, min: 0, max: 10 }),
+      parseFloatParam(fidelityBonus, { default: 0, min: 0, max: 10 }),
+      parseIntParam(maxEnergy, { default: 70, min: 1, max: 200 }),
     );
   }
 
@@ -34,7 +35,7 @@ export class ProductionCalculatorController {
     return this.calculatorService.calculateProfitScenarios(
       companyId,
       outputItem,
-      parseFloat(productionBonus || '0.2'),
+      parseFloatParam(productionBonus, { default: 0.2, min: 0, max: 10 }),
     );
   }
 }

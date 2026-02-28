@@ -116,6 +116,8 @@ WarEraCalculator/
 │   └── steering/             # Agent behavior rules
 ├── backend/                  # NestJS backend application
 │   ├── src/
+│   │   ├── common/           # Shared utility functions
+│   │   │   └── parse-query.ts        # Query parameter validation (parseInt/Float with bounds)
 │   │   ├── config/           # Static configuration files
 │   │   │   ├── item-categories.ts    # Item category mappings
 │   │   │   ├── item-display-names.ts # Item display name mappings

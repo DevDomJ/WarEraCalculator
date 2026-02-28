@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Param, Body, Query } from '@nestjs/common';
 import { CompanyService } from './company.service';
+import { parseIntParam } from '../../common/parse-query';
 
 @Controller('companies')
 export class CompanyController {
@@ -29,7 +30,7 @@ export class CompanyController {
     @Param('workerId') workerId: string,
     @Query('days') days?: string,
   ) {
-    return this.companyService.getWorkerStats(workerId, companyId, days ? parseInt(days) : 30);
+    return this.companyService.getWorkerStats(workerId, companyId, parseIntParam(days, { default: 30, min: 1, max: 365 }));
   }
 
   @Get(':id')

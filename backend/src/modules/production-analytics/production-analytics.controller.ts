@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Param, Body, Query } from '@nestjs/common';
 import { ProductionAnalyticsService } from './production-analytics.service';
+import { parseIntParam } from '../../common/parse-query';
 
 @Controller('analytics')
 export class ProductionAnalyticsController {
@@ -22,7 +23,7 @@ export class ProductionAnalyticsController {
   ) {
     return this.analyticsService.getProductionHistory(
       companyId,
-      parseInt(days || '30'),
+      parseIntParam(days, { default: 30, min: 1, max: 365 }),
     );
   }
 
@@ -33,7 +34,7 @@ export class ProductionAnalyticsController {
   ) {
     return this.analyticsService.getAnalytics(
       companyId,
-      parseInt(days || '30'),
+      parseIntParam(days, { default: 30, min: 1, max: 365 }),
     );
   }
 }

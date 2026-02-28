@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { formatBonus } from '../utils/format'
 import { useParams, useNavigate } from 'react-router-dom'
-import { companyApi, itemsApi } from '../api/client'
+import { companyApi, itemsApi, Worker } from '../api/client'
 import ItemIcon from '../components/ItemIcon'
 import CurrencyValue from '../components/CurrencyValue'
 import ProductionBonusTooltip from '../components/ProductionBonusTooltip'
@@ -53,7 +53,7 @@ export default function CompanyDetail() {
 
   if (!company) return <div className="text-gray-300">Loading...</div>
 
-  const workers = company.workers || []
+  const workers: Worker[] = company.workers || []
 
   return (
     <div>
@@ -155,7 +155,7 @@ export default function CompanyDetail() {
                   </tr>
                 </thead>
                 <tbody>
-                  {workers.map((worker: any, index: number) => (
+                  {workers.map((worker, index) => (
                     <tr
                       key={worker.workerId}
                       className="border-b border-gray-700 hover:bg-gray-700/50 cursor-pointer"
@@ -198,24 +198,24 @@ export default function CompanyDetail() {
                   <tr className="border-t-2 border-gray-500 font-bold bg-gray-700/30">
                     <td className="py-2 px-2 text-white">Total</td>
                     <td className="text-right py-2 px-2 text-white">
-                      <CurrencyValue value={workers.reduce((sum: number, w: any) => sum + (w.wage || 0), 0)} />
+                      <CurrencyValue value={workers.reduce((sum, w) => sum + (w.wage || 0), 0)} />
                     </td>
                     <td className="text-right py-2 px-2 text-white">
-                      <CurrencyValue value={workers.reduce((sum: number, w: any) => sum + (w.dailyWage || 0), 0)} />
+                      <CurrencyValue value={workers.reduce((sum, w) => sum + (w.dailyWage || 0), 0)} />
                     </td>
                     <td className="text-right py-2 px-2 text-white">
-                      {workers.reduce((sum: number, w: any) => sum + (w.paidProduction || 0), 0).toFixed(2)}
+                      {workers.reduce((sum, w) => sum + (w.paidProduction || 0), 0).toFixed(2)}
                     </td>
                     <td className="text-right py-2 px-2 text-white">
-                      {workers.reduce((sum: number, w: any) => sum + (w.totalProduction || 0), 0).toFixed(2)}
+                      {workers.reduce((sum, w) => sum + (w.totalProduction || 0), 0).toFixed(2)}
                     </td>
                     <td className="text-right py-2 px-2 text-white">
-                      {workers.every((w: any) => w.avgDailyProduction != null)
-                        ? workers.reduce((sum: number, w: any) => sum + (w.avgDailyProduction || 0), 0).toFixed(1)
+                      {workers.every((w) => w.avgDailyProduction != null)
+                        ? workers.reduce((sum, w) => sum + (w.avgDailyProduction || 0), 0).toFixed(1)
                         : '—'}
                     </td>
                     <td className="text-right py-2 px-2 text-white">
-                      {workers.reduce((sum: number, w: any) => sum + (w.outputUnits || 0), 0).toFixed(2)}
+                      {workers.reduce((sum, w) => sum + (w.outputUnits || 0), 0).toFixed(2)}
                     </td>
                   </tr>
                 </tbody>
