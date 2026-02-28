@@ -76,13 +76,21 @@ WarEra Calculator - A web application for tracking and visualizing market prices
 ## Common Tasks
 
 ### Starting Development Work
-```bash
-# Terminal 1 - Backend
-cd backend && npm run start:dev
 
-# Terminal 2 - Frontend  
-cd frontend && npm run dev
+**Important:** When starting dev servers from an agent/CLI context, use `setsid` to fully detach the process. Plain `nohup ... &` will freeze the terminal because `npm` spawns child processes that hold file descriptors open.
+
+```bash
+# Backend
+setsid npm run start:dev > /tmp/warera-backend-dev.log 2>&1 < /dev/null &
+
+# Frontend
+setsid npm run dev > /tmp/warera-frontend-dev.log 2>&1 < /dev/null &
 ```
+
+After starting, wait a few seconds and verify both servers are running by checking the log files.
+
+- Backend runs on http://localhost:3000
+- Frontend runs on http://localhost:5173
 
 ### Deploying to Production
 
