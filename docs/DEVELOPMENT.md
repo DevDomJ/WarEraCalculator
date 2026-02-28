@@ -204,6 +204,7 @@ npx prisma migrate dev --name descriptive_name
 | POST | `/api/companies/user/:userId/refresh` | Refresh companies from API |
 | GET | `/api/companies/:id` | Get single company with production bonus |
 | POST | `/api/companies/:id/refresh` | Refresh single company from API |
+| GET | `/api/companies/:id/worker/:workerId/stats?days=X` | Worker daily production stats (default 30 days) |
 | POST | `/api/companies/reorder` | Reorder companies (drag & drop) |
 | GET | `/api/production/recipes` | All production recipes |
 | GET | `/api/production/:companyId/metrics` | Production metrics calculation |

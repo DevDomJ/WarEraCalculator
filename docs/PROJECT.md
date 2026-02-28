@@ -149,6 +149,7 @@ WarEraCalculator/
     │   │   ├── ItemDetail.tsx         # Item detail with charts & orders
     │   │   ├── CompaniesList.tsx      # Companies list with drag & drop
     │   │   ├── CompanyDetail.tsx      # Company detail with metrics & profit
+    │   │   ├── WorkerDetail.tsx       # Worker detail with production chart
     │   │   ├── MuList.tsx             # Military unit list (membership + owned)
     │   │   └── MuDetail.tsx           # MU detail with members & stats
     │   ├── components/

@@ -123,7 +123,7 @@ WarEraApplication/
 │   ├── src/config/    # Static config (categories, display names, ethics)
 │   └── prisma/        # Database schema & migrations
 ├── frontend/          # React + Vite frontend
-│   ├── src/pages/     # 6 page components
+│   ├── src/pages/     # 7 page components
 │   ├── src/components/# 9 reusable components
 │   └── src/api/       # API client
 └── docs/              # Project documentation
@@ -146,7 +146,7 @@ For the full directory tree, see [docs/PROJECT.md](docs/PROJECT.md#project-struc
 - Scheduled data collection with cron jobs
 
 ### Phase 3: REST API ✅
-- REST API for frontend consumption (19 endpoints)
+- REST API for frontend consumption (20 endpoints)
 - Market data, company management, production, and analytics endpoints
 - See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#api-reference) for the full endpoint reference
 

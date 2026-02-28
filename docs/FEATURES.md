@@ -80,6 +80,10 @@ All data comes from the WarEra API. We need a robust API client that handles aut
 | `/mu.getManyPaginated` | MU membership/ownership lookup | On demand |
 | `/user.getUserLite` | User profiles (level, stats, last login) | On demand (batched) |
 | `/transaction.getPaginatedTransactions` | MU donation totals (30-day window) | On demand |
+| `/work.getStatsByWorkerAndCompany` | Per-worker daily production stats | On demand |
+| `/work.getStatsByCompany` | Company daily production breakdown | On demand |
+| `/workOffer.getWageStats` | Global wage market statistics | On demand |
+| `/company.getProductionBonus` | Server-side production bonus | On demand |
 
 ### Design Decisions
 - API key is **never committed** to the repository — stored in `.env` file
@@ -277,15 +281,17 @@ Players need to view and manage their companies, see worker details, and underst
 ### Implementation
 - Backend: `CompanyService` fetches companies from WarEra API by userId
 - Fetches work offers and worker details (wages, energy, production value, fidelity)
+- Fetches actual daily production stats per worker via `work.getStatsByWorkerAndCompany`
 - Database models: `Company` and `Worker` with full worker stats
 - REST API:
   - `POST /api/companies/fetch` — Fetch companies from WarEra API
   - `GET /api/companies/user/:userId` — Get cached companies with production bonuses
   - `POST /api/companies/user/:userId/refresh` — Refresh from API
-  - `GET /api/companies/:id` — Get single company
+  - `GET /api/companies/:id` — Get single company (includes avg daily production per worker)
   - `POST /api/companies/:id/refresh` — Refresh single company
+  - `GET /api/companies/:id/worker/:workerId/stats?days=X` — Get worker daily production stats
   - `POST /api/companies/reorder` — Reorder companies (drag & drop)
-- Frontend: `CompaniesList` page with drag & drop reordering (@dnd-kit), daily profit per company card, aggregated summary card (`CompaniesSummary` component), `CompanyDetail` page with full metrics
+- Frontend: `CompaniesList` page with drag & drop reordering (@dnd-kit), daily profit per company card, aggregated summary card (`CompaniesSummary` component), `CompanyDetail` page with full metrics and clickable workers, `WorkerDetail` page with worker info card and 30-day production bar chart
 - User ID stored in localStorage for persistence
 
 ---
