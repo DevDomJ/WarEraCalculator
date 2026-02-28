@@ -150,12 +150,17 @@ export default function CompanyDetail() {
                     <th className="text-right py-2 px-2 text-gray-400 font-medium">Daily Wage</th>
                     <th className="text-right py-2 px-2 text-gray-400 font-medium">Paid PP</th>
                     <th className="text-right py-2 px-2 text-gray-400 font-medium">Total PP</th>
+                    <th className="text-right py-2 px-2 text-gray-400 font-medium">Avg PP/Day</th>
                     <th className="text-right py-2 px-2 text-gray-400 font-medium">Output</th>
                   </tr>
                 </thead>
                 <tbody>
                   {workers.map((worker: any, index: number) => (
-                    <tr key={worker.workerId} className="border-b border-gray-700 hover:bg-gray-700/50">
+                    <tr
+                      key={worker.workerId}
+                      className="border-b border-gray-700 hover:bg-gray-700/50 cursor-pointer"
+                      onClick={() => navigate(`/company/${id}/worker/${worker.userId}`)}
+                    >
                       <td className="py-2 px-2">
                         <div className="flex items-center gap-2">
                           {worker.avatarUrl && (
@@ -184,6 +189,9 @@ export default function CompanyDetail() {
                       <td className="text-right py-2 px-2 text-white"><CurrencyValue value={worker.dailyWage || 0} /></td>
                       <td className="text-right py-2 px-2 text-white">{(worker.paidProduction || 0).toFixed(2)}</td>
                       <td className="text-right py-2 px-2 text-white">{(worker.totalProduction || 0).toFixed(2)}</td>
+                      <td className="text-right py-2 px-2 text-white">
+                        {worker.avgDailyProduction != null ? worker.avgDailyProduction.toFixed(1) : '—'}
+                      </td>
                       <td className="text-right py-2 px-2 text-white">{(worker.outputUnits || 0).toFixed(2)}</td>
                     </tr>
                   ))}
@@ -200,6 +208,11 @@ export default function CompanyDetail() {
                     </td>
                     <td className="text-right py-2 px-2 text-white">
                       {workers.reduce((sum: number, w: any) => sum + (w.totalProduction || 0), 0).toFixed(2)}
+                    </td>
+                    <td className="text-right py-2 px-2 text-white">
+                      {workers.every((w: any) => w.avgDailyProduction != null)
+                        ? workers.reduce((sum: number, w: any) => sum + (w.avgDailyProduction || 0), 0).toFixed(1)
+                        : '—'}
                     </td>
                     <td className="text-right py-2 px-2 text-white">
                       {workers.reduce((sum: number, w: any) => sum + (w.outputUnits || 0), 0).toFixed(2)}

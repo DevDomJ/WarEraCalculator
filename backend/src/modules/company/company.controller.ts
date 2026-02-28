@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Query } from '@nestjs/common';
 import { CompanyService } from './company.service';
 
 @Controller('companies')
@@ -21,6 +21,15 @@ export class CompanyController {
   async refreshCompaniesByUser(@Param('userId') userId: string) {
     await this.companyService.fetchCompaniesByUserId(userId);
     return this.companyService.getCompaniesByUserId(userId, true);
+  }
+
+  @Get(':id/worker/:workerId/stats')
+  async getWorkerStats(
+    @Param('id') companyId: string,
+    @Param('workerId') workerId: string,
+    @Query('days') days?: string,
+  ) {
+    return this.companyService.getWorkerStats(workerId, companyId, days ? parseInt(days) : 30);
   }
 
   @Get(':id')

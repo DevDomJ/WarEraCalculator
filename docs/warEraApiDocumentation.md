@@ -671,6 +671,160 @@ X-API-Key: YOUR_API_TOKEN
 
 ---
 
+## Work Stats Endpoints
+
+### Get Stats By Company
+**Endpoint:** `/work.getStatsByCompany`  
+**Operation ID:** `work.getStatsByCompany`  
+**Description:** Get daily production stats for a company over a time period. Breaks down production by source (employees, self-work, automated engine).
+
+**Request Body:**
+```json
+{
+  "companyId": "string", // Required: The company ID
+  "days": 30,            // Required: Number of days to look back
+  "timezone": "Europe/Berlin" // Required: Timezone for daily aggregation
+}
+```
+
+**Response:**
+```json
+[
+  {
+    "dailyDate": "2026-02-27",
+    "total": 2481.39,
+    "wage": 177.416,
+    "employeeProd": 2264.04,
+    "selfWork": 0,
+    "automatedEngine": 217.35
+  }
+]
+```
+
+| Field | Description |
+|---|---|
+| `dailyDate` | Date string (YYYY-MM-DD) |
+| `total` | Total production points produced that day |
+| `wage` | Total wages paid that day |
+| `employeeProd` | Production points from employees |
+| `selfWork` | Production points from owner working |
+| `automatedEngine` | Production points from automated engine |
+
+---
+
+### Get Stats By Worker And Company
+**Endpoint:** `/work.getStatsByWorkerAndCompany`  
+**Operation ID:** `work.getStatsByWorkerAndCompany`  
+**Description:** Get daily production stats for a specific worker in a company. Requires supporter status in-game.
+
+**Request Body:**
+```json
+{
+  "workerId": "string",  // Required: The worker's user ID
+  "companyId": "string", // Required: The company ID
+  "days": 14,            // Required: Number of days to look back
+  "timezone": "Europe/Berlin" // Required: Timezone for daily aggregation
+}
+```
+
+**Response:**
+```json
+[
+  {
+    "dailyDate": "2026-02-27",
+    "total": 1212.39,
+    "wage": 95.006,
+    "employeeProd": 1212.39
+  }
+]
+```
+
+| Field | Description |
+|---|---|
+| `dailyDate` | Date string (YYYY-MM-DD) |
+| `total` | Total production points by this worker that day |
+| `wage` | Wages paid to this worker that day |
+| `employeeProd` | Production points contributed (same as total for individual workers) |
+
+---
+
+## Wage Stats Endpoints
+
+### Get Wage Stats
+**Endpoint:** `/workOffer.getWageStats`  
+**Operation ID:** `workOffer.getWageStats`  
+**Description:** Get global wage market statistics including allowed range and top offers.
+
+**Request Body:**
+```json
+{}
+```
+
+**Response:**
+```json
+{
+  "allowedRange": {
+    "min": 0.094,
+    "max": 0.175,
+    "average": 0.135
+  },
+  "topOffer": 0.16,
+  "topEligibleOffer": 0.14,
+  "topEligibleOffers": [
+    {
+      "_id": "string",
+      "company": "string",
+      "user": "string",
+      "region": "string",
+      "quantity": 1,
+      "initialQuantity": 1,
+      "wage": 0.14,
+      "text": "string",
+      "createdAt": "string",
+      "updatedAt": "string"
+    }
+  ]
+}
+```
+
+---
+
+## Production Bonus Endpoints
+
+### Get Production Bonus
+**Endpoint:** `/company.getProductionBonus`  
+**Operation ID:** `company.getProductionBonus`  
+**Description:** Get the production bonus breakdown for a company directly from the server.
+
+**Request Body:**
+```json
+{
+  "companyId": "string" // Required: The company ID
+}
+```
+
+**Response:**
+```json
+{
+  "strategicBonus": 31,
+  "depositBonus": 0,
+  "ethicSpecializationBonus": 30,
+  "ethicDepositBonus": 0,
+  "total": 61
+}
+```
+
+---
+
+## Restricted Endpoints (API Token Forbidden)
+
+The following endpoints are accessible only via session auth (in-game), not via API tokens:
+
+- `company.getCompaniesCount` — Get total company count for a user
+- `company.getActiveCompaniesCount` — Get active company count for a user
+
+---
+
 ## API Information
 
 - **Title:** WarEra API Documentation

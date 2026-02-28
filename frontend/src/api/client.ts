@@ -46,6 +46,14 @@ export interface Worker {
   paidProduction?: number
   totalProduction?: number
   outputUnits?: number
+  avgDailyProduction?: number
+}
+
+export interface WorkerDailyStat {
+  dailyDate: string
+  total: number
+  wage: number
+  employeeProd: number
 }
 
 export interface ProductionBonusBreakdown {
@@ -179,6 +187,8 @@ export const companyApi = {
     api.post<Company>(`/companies/${id}/refresh`).then(res => res.data),
   reorder: (companyIds: string[]) =>
     api.post('/companies/reorder', { companyIds }).then(res => res.data),
+  getWorkerStats: (companyId: string, workerId: string, days = 30) =>
+    api.get<WorkerDailyStat[]>(`/companies/${companyId}/worker/${workerId}/stats?days=${days}`).then(res => res.data),
 }
 
 export const productionApi = {

@@ -3,6 +3,7 @@ import GoodsOverview from './pages/GoodsOverview'
 import ItemDetail from './pages/ItemDetail'
 import CompaniesList from './pages/CompaniesList'
 import CompanyDetail from './pages/CompanyDetail'
+import WorkerDetail from './pages/WorkerDetail'
 import MuList from './pages/MuList'
 import MuDetail from './pages/MuDetail'
 
@@ -27,6 +28,7 @@ function App() {
           <Route path="/item/:code" element={<ItemDetail />} />
           <Route path="/companies" element={<CompaniesList />} />
           <Route path="/company/:id" element={<CompanyDetail />} />
+          <Route path="/company/:companyId/worker/:workerId" element={<WorkerDetail />} />
           <Route path="/mu" element={<MuList />} />
           <Route path="/mu/:muId" element={<MuDetail />} />
         </Routes>

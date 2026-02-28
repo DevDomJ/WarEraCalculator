@@ -85,6 +85,14 @@ export interface WorkerData {
   paidProduction?: number;
   totalProduction?: number;
   outputUnits?: number;
+  avgDailyProduction?: number;
+}
+
+export interface WorkerDailyStat {
+  dailyDate: string;
+  total: number;
+  wage: number;
+  employeeProd: number;
 }
 
 @Injectable()
@@ -95,6 +103,7 @@ export class CompanyService {
   private readonly ENERGY_REGEN_PER_HOUR = 0.1; // 10% of max energy per hour
   private readonly HOURS_PER_DAY = 24;
   private readonly ENERGY_PER_WORK_ACTION = 10;
+  private readonly TIMEZONE = 'Europe/Berlin';
   private readonly AUTO_PRODUCTION_POINTS_PER_LEVEL_PER_DAY = 24;
 
   constructor(
@@ -248,6 +257,24 @@ export class CompanyService {
       totalProduction,
       outputUnits: totalProduction / productionPerUnit,
     };
+  }
+
+  async getWorkerStats(workerId: string, companyId: string, days = 30): Promise<WorkerDailyStat[]> {
+    const response = await this.apiService.request<any>(
+      'work.getStatsByWorkerAndCompany',
+      { workerId, companyId, days, timezone: this.TIMEZONE },
+    );
+    const data = Array.isArray(response) ? response[0] : response;
+    return data?.result?.data || [];
+  }
+
+  async getWorkerAvgDailyProduction(workerId: string, companyId: string): Promise<number> {
+    const stats = await this.getWorkerStats(workerId, companyId, 14);
+    const today = new Date().toISOString().slice(0, 10);
+    const completeDays = stats.filter(s => s.dailyDate !== today);
+    if (completeDays.length === 0) return 0;
+    const total = completeDays.reduce((sum, s) => sum + s.total, 0);
+    return total / completeDays.length;
   }
 
   async fetchCompaniesByUserId(userId: string): Promise<CompanyData[]> {
@@ -524,6 +551,16 @@ export class CompanyService {
         productionPerUnit
       )
     );
+
+    // Fetch avg daily production for each worker in parallel
+    await Promise.all(workers.map(async (w) => {
+      try {
+        w.avgDailyProduction = await this.getWorkerAvgDailyProduction(w.userId, company.companyId);
+      } catch (error) {
+        this.logger.debug(`Failed to fetch avg production for worker ${w.username} (${w.userId}): ${error instanceof Error ? error.message : String(error)}`);
+        w.avgDailyProduction = undefined;
+      }
+    }));
     
     // Calculate worker profit metrics
     const workerProfitMetrics = workers.length > 0 
