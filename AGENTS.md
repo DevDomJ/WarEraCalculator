@@ -118,8 +118,8 @@ cd backend && npx prisma migrate deploy
 backend/
 ├── dist/              # Built code (deploy this)
 ├── src/               # Source code
-│   ├── config/        # Static configuration (categories, display names, ethics)
-│   └── modules/       # NestJS feature modules (13 modules)
+│   ├── config/        # Static configuration (categories, display names)
+│   └── modules/       # NestJS feature modules (11 modules)
 ├── prisma/
 │   ├── dev.db        # Dev database (has gaps when dev is offline)
 │   └── schema.prisma # Database schema

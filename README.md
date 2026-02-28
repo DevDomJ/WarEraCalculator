@@ -118,9 +118,9 @@ npm run start:prod
 
 ```
 WarEraApplication/
-├── backend/           # NestJS backend (13 modules)
+├── backend/           # NestJS backend (11 modules)
 │   ├── src/modules/   # Feature modules (API, data collection, companies, production, MU)
-│   ├── src/config/    # Static config (categories, display names, ethics)
+│   ├── src/config/    # Static config (categories, display names)
 │   └── prisma/        # Database schema & migrations
 ├── frontend/          # React + Vite frontend
 │   ├── src/pages/     # 7 page components

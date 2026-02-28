@@ -13,6 +13,15 @@ Known issues and improvements to address when time permits.
 
 ---
 
+### TD-004: `any` typed API responses across backend services
+
+**Scope:** Backend — all `WarEraApiService.request()` call sites  
+**Severity:** Low  
+**Example:** `fetchProductionBonus` in `company.service.ts` types the response as `any`. This pattern is used consistently across the codebase (e.g., data collection, game config fetching).  
+**Recommendation:** Define response interfaces for each WarEra API endpoint and use them as type parameters in `apiService.request<T>()`. Do all at once for consistency.
+
+---
+
 ## Resolved
 
 ### ~~TD-001: No input validation on query parameters~~ ✅ Resolved 2026-02-28

@@ -86,8 +86,8 @@ For the full project directory tree, see [PROJECT.md — Project Structure](./PR
 Key directories for development:
 
 ```
-backend/src/modules/    # NestJS feature modules (13 modules)
-backend/src/config/     # Static configuration (categories, display names, ethics)
+backend/src/modules/    # NestJS feature modules (11 modules)
+backend/src/config/     # Static configuration (categories, display names)
 backend/prisma/         # Database schema & migrations
 frontend/src/pages/     # Page-level React components (6 pages)
 frontend/src/components/# Reusable React components (9 components)

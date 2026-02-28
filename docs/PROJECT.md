@@ -36,14 +36,14 @@ The game currently lacks tools for players to:
 2. **View market depth** — What buy/sell orders exist for each item?
 3. **Calculate profitability** — Given wage level X, production bonus Y, and selling price Z, what would the profit be?
 4. **Track production efficiency** — How does actual production compare to expected output?
-5. **Understand bonus sources** — What production bonuses come from country, party ethics, and deposits?
+5. **Understand bonus sources** — What production bonuses apply to each company?
 
 This application fills those gaps by:
 - Periodically fetching market data from the WarEra API and storing it historically
 - Providing interactive visualizations of price trends with multiple data series
 - Offering calculators for production profitability with scenario comparison
 - Tracking production history and efficiency metrics
-- Calculating production bonuses from country specialization, party ethics, and regional deposits
+- Displaying production bonus breakdowns fetched from the WarEra API
 
 ---
 
@@ -120,8 +120,7 @@ WarEraCalculator/
 │   │   │   └── parse-query.ts        # Query parameter validation (parseInt/Float with bounds)
 │   │   ├── config/           # Static configuration files
 │   │   │   ├── item-categories.ts    # Item category mappings
-│   │   │   ├── item-display-names.ts # Item display name mappings
-│   │   │   └── ethics.json           # Party ethics bonus config
+│   │   │   └── item-display-names.ts # Item display name mappings
 │   │   ├── modules/
 │   │   │   ├── warera-api/           # HTTP client with rate limiting
 │   │   │   ├── game-config/          # Game configuration & items
@@ -130,11 +129,9 @@ WarEraCalculator/
 │   │   │   ├── items/                # Items REST API
 │   │   │   ├── price-history/        # Price history REST API
 │   │   │   ├── data-collection/      # Cron job scheduler (every 5 min)
-│   │   │   ├── company/              # Company management & workers
+│   │   │   ├── company/              # Company management, workers & production bonus
 │   │   │   ├── production-calculator/# Production metrics & profit
 │   │   │   ├── production-analytics/ # Production tracking & history
-│   │   │   ├── production-bonus/     # Bonus calculation (country, party, deposit)
-│   │   │   ├── ethics/               # Party ethics bonus resolution
 │   │   │   └── mu/                   # Military unit management
 │   │   ├── app.module.ts
 │   │   ├── main.ts
@@ -195,8 +192,8 @@ This table tracks all planned features and their implementation status.
 | F-14 | Batch API requests | ✅ Implemented | Trading orders batched (30 items per batch) |
 | F-15 | Company management | ✅ Implemented | Fetch companies by userId, worker details, drag & drop reorder |
 | F-16 | Production analytics | ✅ Implemented | Track actual vs expected PP, efficiency metrics, 30-day chart |
-| F-17 | Production bonus calculation | ✅ Implemented | Country specialization, party ethics, regional deposits |
-| F-18 | Ethics system integration | ✅ Implemented | Industrialism & agrarianism bonuses from ruling party |
+| F-17 | Production bonus calculation | ✅ Implemented | Fetched from WarEra API (`company.getProductionBonus`) |
+| F-18 | Ethics system integration | ✅ Implemented | Handled server-side by WarEra API (included in production bonus) |
 | F-19 | Military unit (MU) management | ✅ Implemented | MU membership, owned MUs, member stats, donations, inactive detection |
 
 > **For detailed feature documentation including requirements and design decisions, see [FEATURES.md](./FEATURES.md).**

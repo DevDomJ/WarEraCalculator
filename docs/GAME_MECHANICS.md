@@ -81,34 +81,17 @@ Total PP per Day = Work Actions per Day × PP per Work
 
 Production bonuses increase output without increasing input costs. The total bonus comes from multiple sources:
 
-### Country Specialization
-- Each country has a specialized item
-- Companies producing that item receive a production bonus
-- Bonus percentage comes from the country's `strategicResources.bonuses.productionPercent`
-
-### Regional Deposits
-- Regions can have resource deposits that grant production bonuses
-- Deposit bonus applies when the company produces the deposit's item type
-- Deposits have an expiry date (`endsAt`)
-- Bonus percentage from `region.deposit.bonusPercent`
-
-### Party Ethics
-- The ruling party's ethics affect production bonuses for certain item categories
-- Defined in `backend/src/config/ethics.json`
-
-| Ethic | Levels | Affects |
-|-------|--------|---------|
-| **Industrialism** | 0-2 | Ammo & Construction categories |
-| **Agrarianism** | 0-2 | Food category |
-
-Higher ethic levels grant larger production bonuses.
+### Bonus Sources
+- **Country specialization**: Bonus when producing the country's specialized item (`strategicBonus`)
+- **Regional deposits**: Bonus from resource deposits in the company's region (`depositBonus`)
+- **Party ethics**: Bonus from ruling party's ethics specialization (`ethicSpecializationBonus`, `ethicDepositBonus`)
 
 ### Total Production Bonus
 ```
-Total Bonus = Country Bonus + Deposit Bonus + Party Ethics Bonus
+Total Bonus = Strategic Bonus + Deposit Bonus + Ethic Specialization Bonus + Ethic Deposit Bonus
 ```
 
-This total is used in the PP per Work formula above.
+The total is fetched from the WarEra API via `company.getProductionBonus` and used in the PP per Work formula above.
 
 ---
 

@@ -73,9 +73,7 @@ All data comes from the WarEra API. We need a robust API client that handles aut
 | `/company.getCompanies` | User's companies | On demand |
 | `/company.getById` | Single company details | On demand |
 | `/workOffer.getWorkOfferByCompanyId` | Worker/wage info | On demand |
-| `/country.getCountryById` | Country data for bonuses | On demand (cached per hour) |
-| `/party.getById` | Party ethics for bonuses | On demand (cached 12 hours) |
-| `/region.getRegionById` | Region data for deposit bonuses | On demand |
+| `/company.getProductionBonus` | Server-side production bonus | On demand |
 | `/mu.getById` | Military unit details | On demand |
 | `/mu.getManyPaginated` | MU membership/ownership lookup | On demand |
 | `/user.getUserLite` | User profiles (level, stats, last login) | On demand (batched) |
@@ -83,7 +81,6 @@ All data comes from the WarEra API. We need a robust API client that handles aut
 | `/work.getStatsByWorkerAndCompany` | Per-worker daily production stats | On demand |
 | `/work.getStatsByCompany` | Company daily production breakdown | On demand |
 | `/workOffer.getWageStats` | Global wage market statistics | On demand |
-| `/company.getProductionBonus` | Server-side production bonus | On demand |
 
 ### Design Decisions
 - API key is **never committed** to the repository — stored in `.env` file
@@ -321,27 +318,25 @@ Players need to track actual production output against expected values to identi
 Production output is affected by multiple bonus sources. Players need to understand where their bonuses come from.
 
 ### Implementation
-- Backend: `ProductionBonusService` calculates total production bonus from:
-  - **Country specialization**: Bonus when producing the country's specialized item
-  - **Regional deposits**: Bonus from resource deposits in the company's region (with expiry tracking)
-  - **Party ethics**: Bonus from ruling party's industrialism/agrarianism ethics
-- Caching: Country data cached per hour, party data cached for 12 hours
-- Frontend: `ProductionBonusTooltip` component shows breakdown of all bonus sources
+- Backend: `CompanyService.fetchProductionBonus()` calls the WarEra API endpoint `company.getProductionBonus` directly
+- Returns breakdown: strategic bonus, deposit bonus, ethic specialization bonus, ethic deposit bonus
+- Frontend: `ProductionBonusTooltip` component shows breakdown with simple labels
+
+### Design Decisions
+- **API-based approach**: Previously calculated client-side from 3 separate API calls (region, country, party). Replaced with a single `company.getProductionBonus` call that returns the authoritative server-side values. This eliminated the `ProductionBonusService`, `EthicsService`, and `ethics.json` config (~270 lines).
+- **Simplified tooltip labels**: The API returns only numeric values (no country/party names), so the tooltip shows generic labels like "strategic resources" and "ethic specialization" instead of the previous contextual descriptions.
 
 ---
 
 ## F-18: Ethics System Integration
-**Status:** ✅ Implemented
+**Status:** ✅ Implemented (merged into F-17)
 
 ### Requirement
 The ruling party's ethics affect production bonuses for certain item categories.
 
 ### Implementation
-- Backend: `EthicsService` resolves party ethics to production bonuses
-- Configuration: `backend/src/config/ethics.json` defines ethics levels and their bonuses
-- **Industrialism**: Grants production bonus to Ammo & Construction categories
-- **Agrarianism**: Grants production bonus to agricultural goods (Food category)
-- Ethics levels range from 0-2, with increasing bonus percentages
+- Ethics bonuses are now included in the `company.getProductionBonus` API response as `ethicSpecializationBonus` and `ethicDepositBonus`
+- The dedicated `EthicsService`, `EthicsModule`, and `ethics.json` config have been removed — the game server handles this calculation
 
 ---
 
