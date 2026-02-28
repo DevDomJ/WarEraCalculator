@@ -1,5 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { WarEraApiService } from '../warera-api/warera-api.service';
+import {
+  extractData,
+  MuListResponse,
+  MuByIdResponse,
+  MuRaw,
+  UserLiteData,
+  TransactionListResponse,
+  TrpcBatchResponse,
+} from '../warera-api/warera-api.types';
 
 @Injectable()
 export class MuService {
@@ -9,15 +18,15 @@ export class MuService {
 
   /** Get the MU a user is a member of */
   async getMemberMu(userId: string) {
-    const res = await this.warEraApi.request<any>('mu.getManyPaginated', { memberId: userId });
-    const items = res?.[0]?.result?.data?.items ?? [];
+    const res = await this.warEraApi.request<MuListResponse>('mu.getManyPaginated', { memberId: userId });
+    const items = extractData(res)?.items ?? [];
     return items[0] ?? null;
   }
 
   /** Get MUs a user owns */
   async getOwnedMus(userId: string) {
-    const res = await this.warEraApi.request<any>('mu.getManyPaginated', { userId });
-    return res?.[0]?.result?.data?.items ?? [];
+    const res = await this.warEraApi.request<MuListResponse>('mu.getManyPaginated', { userId });
+    return extractData(res)?.items ?? [];
   }
 
   /** Get summary of MUs for a user (membership + owned) */
@@ -26,7 +35,7 @@ export class MuService {
       this.getMemberMu(userId),
       this.getOwnedMus(userId),
     ]);
-    const toSummary = (mu: any) => ({ id: mu._id, name: mu.name, avatarUrl: mu.avatarUrl, memberCount: mu.members?.length ?? 0 });
+    const toSummary = (mu: MuRaw) => ({ id: mu._id, name: mu.name, avatarUrl: mu.avatarUrl, memberCount: mu.members?.length ?? 0 });
     return {
       memberOf: memberMu ? toSummary(memberMu) : null,
       owned: ownedMus.map(toSummary),
@@ -35,8 +44,8 @@ export class MuService {
 
   /** Get MU by ID with enriched member data */
   async getMuDetail(muId: string) {
-    const res = await this.warEraApi.request<any>('mu.getById', { muId });
-    const mu = res?.[0]?.result?.data;
+    const res = await this.warEraApi.request<MuByIdResponse>('mu.getById', { muId });
+    const mu = extractData(res);
     if (!mu) return null;
 
     // Fetch user details and donation totals in parallel
@@ -105,12 +114,12 @@ export class MuService {
     let cursor: string | undefined;
 
     while (true) {
-      const params: any = { muId, limit: 100, transactionType: 'donation' };
+      const params: Record<string, string | number> = { muId, limit: 100, transactionType: 'donation' };
       if (cursor) params.cursor = cursor;
 
       try {
-        const res = await this.warEraApi.request<any>('transaction.getPaginatedTransactions', params);
-        const data = res?.[0]?.result?.data;
+        const res = await this.warEraApi.request<TransactionListResponse>('transaction.getPaginatedTransactions', params);
+        const data = extractData(res);
         const items = data?.items ?? [];
 
         let reachedCutoff = false;
@@ -135,8 +144,8 @@ export class MuService {
   }
 
   /** Fetch user profiles in batches to respect rate limits */
-  private async fetchUsersInBatches(userIds: string[]): Promise<Map<string, any>> {
-    const map = new Map<string, any>();
+  private async fetchUsersInBatches(userIds: string[]): Promise<Map<string, UserLiteData>> {
+    const map = new Map<string, UserLiteData>();
     // Batch via tRPC batch endpoint
     const batchSize = 25;
     for (let i = 0; i < userIds.length; i += batchSize) {
@@ -146,9 +155,8 @@ export class MuService {
         params: { userId },
       }));
       try {
-        const results = await this.warEraApi.batchRequest<any>(endpoints);
-        const resultsArray = Array.isArray(results) ? results : Object.values(results);
-        resultsArray.forEach((r: any, idx: number) => {
+        const results = await this.warEraApi.batchRequest<TrpcBatchResponse<UserLiteData>>(endpoints);
+        results.forEach((r, idx) => {
           const data = r?.result?.data;
           if (data) map.set(batch[idx], data);
         });

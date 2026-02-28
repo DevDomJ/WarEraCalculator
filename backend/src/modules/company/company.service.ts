@@ -1,6 +1,16 @@
 import { Injectable, Logger, forwardRef, Inject } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { WarEraApiService } from '../warera-api/warera-api.service';
+import {
+  extractData,
+  ProductionBonusResponse,
+  CompanyByIdResponse,
+  CompanyListResponse,
+  WorkOfferResponse,
+  WorkersResponse,
+  UserLiteResponse,
+  WorkerStatsResponse,
+} from '../warera-api/warera-api.types';
 import { PrismaService } from '../../prisma.service';
 import { ProductionCalculatorService } from '../production-calculator/production-calculator.service';
 
@@ -101,8 +111,8 @@ export class CompanyService {
 
   private async fetchProductionBonus(companyId: string): Promise<ProductionBonusBreakdown> {
     try {
-      const response: any = await this.apiService.request('company.getProductionBonus', { companyId });
-      const data = Array.isArray(response) ? response[0]?.result?.data : response?.result?.data;
+      const response = await this.apiService.request<ProductionBonusResponse>('company.getProductionBonus', { companyId });
+      const data = extractData(response);
       if (data) {
         return {
           total: data.total || 0,
@@ -263,12 +273,12 @@ export class CompanyService {
   }
 
   async getWorkerStats(workerId: string, companyId: string, days = 30): Promise<WorkerDailyStat[]> {
-    const response = await this.apiService.request<any>(
+    const response = await this.apiService.request<WorkerStatsResponse>(
       'work.getStatsByWorkerAndCompany',
       { workerId, companyId, days, timezone: this.TIMEZONE },
     );
-    const data = Array.isArray(response) ? response[0] : response;
-    return data?.result?.data || [];
+    const data = extractData(response);
+    return data || [];
   }
 
   async getWorkerAvgDailyProduction(workerId: string, companyId: string): Promise<number> {
@@ -289,16 +299,16 @@ export class CompanyService {
       
       // Fetch all pages
       do {
-        const params: any = { userId, perPage: 100 };
+        const params: Record<string, string | number> = { userId, perPage: 100 };
         if (cursor) params.cursor = cursor;
         
-        const response = await this.apiService.request<any>('company.getCompanies', params);
-        const data = Array.isArray(response) ? response[0] : response;
+        const response = await this.apiService.request<CompanyListResponse>('company.getCompanies', params);
+        const data = extractData(response);
         
-        if (!data?.result?.data?.items) break;
+        if (!data?.items) break;
         
-        allCompanyIds.push(...data.result.data.items);
-        cursor = data.result.data.nextCursor;
+        allCompanyIds.push(...data.items);
+        cursor = data.nextCursor;
       } while (cursor);
       
       this.logger.log(`Found ${allCompanyIds.length} companies total`);
@@ -307,16 +317,14 @@ export class CompanyService {
       for (const companyId of allCompanyIds) {
         try {
           this.logger.debug(`Fetching company ${companyId}`);
-          const companyResponse = await this.apiService.request<any>(
+          const companyResponse = await this.apiService.request<CompanyByIdResponse>(
             'company.getById',
             { companyId }
           );
 
-          // With batch=1, response is an array
-          const companyData = Array.isArray(companyResponse) ? companyResponse[0] : companyResponse;
-          this.logger.debug(`Company response for ${companyId}: ${JSON.stringify(companyData).substring(0, 200)}`);
+          const company = extractData(companyResponse);
+          this.logger.debug(`Company response for ${companyId}: ${JSON.stringify(company).substring(0, 200)}`);
           
-          const company = companyData?.result?.data;
           if (!company) {
             this.logger.warn(`No data for company ${companyId}`);
             continue;
@@ -325,53 +333,37 @@ export class CompanyService {
           this.logger.debug(`Fetching work offer for ${companyId}`);
           let workOffer = null;
           try {
-            const workOfferResponse = await this.apiService.request<any>(
+            const workOfferResponse = await this.apiService.request<WorkOfferResponse>(
               'workOffer.getWorkOfferByCompanyId',
               { companyId }
             );
-            const workOfferData = Array.isArray(workOfferResponse) ? workOfferResponse[0] : workOfferResponse;
-            workOffer = workOfferData?.result?.data;
-            
-            this.logger.log(`=== WORK OFFER DATA for ${company.name} (${companyId}) ===`);
-            this.logger.log(`Endpoint: workOffer.getWorkOfferByCompanyId`);
-            this.logger.log(`Full Response: ${JSON.stringify(workOfferData, null, 2)}`);
-            this.logger.log(`productionValue: ${workOffer?.productionValue}`);
-            this.logger.log(`=== END WORK OFFER DATA ===`);
+            workOffer = extractData(workOfferResponse);
           } catch (error) {
             // Work offer not found is OK - company might not have one
             this.logger.debug(`No work offer for company ${companyId}`);
           }
-          
-          this.logger.log(`=== COMPANY DATA for ${company.name} (${companyId}) ===`);
-          this.logger.log(`Endpoint: company.getById`);
-          this.logger.log(`Full company object: ${JSON.stringify(company, null, 2)}`);
-          this.logger.log(`company.production: ${company.production}`);
-          this.logger.log(`company.maxProduction: ${company.maxProduction}`);
-          this.logger.log(`Final productionValue used: ${workOffer?.productionValue || company.production || 0}`);
-          this.logger.log(`=== END COMPANY DATA ===`);
 
           // Fetch workers
           this.logger.debug(`Fetching workers for ${companyId}`);
           let workers: WorkerData[] = [];
           try {
-            const workersResponse = await this.apiService.request<any>(
+            const workersResponse = await this.apiService.request<WorkersResponse>(
               'worker.getWorkers',
               { companyId }
             );
-            const workersData = Array.isArray(workersResponse) ? workersResponse[0] : workersResponse;
-            const workersList = workersData?.result?.data?.workers || [];
+            const workersListData = extractData(workersResponse);
+            const workersList = workersListData?.workers || [];
             
             this.logger.debug(`Worker raw data: ${JSON.stringify(workersList)}`);
             
             // Fetch user data for each worker to get maxEnergy and production
-            workers = await Promise.all(workersList.map(async (w: any) => {
+            workers = await Promise.all(workersList.map(async (w) => {
               try {
-                const userResponse = await this.apiService.request<any>(
+                const userResponse = await this.apiService.request<UserLiteResponse>(
                   'user.getUserLite',
                   { userId: w.user || w.userId }
                 );
-                const userData = Array.isArray(userResponse) ? userResponse[0] : userResponse;
-                const user = userData?.result?.data;
+                const user = extractData(userResponse);
                 
                 const workerData = {
                   workerId: w._id || w.id,
@@ -517,6 +509,15 @@ export class CompanyService {
     if (!company) return null;
     
     return this.enrichCompanyWithMetrics(company);
+  }
+
+  /** Lightweight DB-only lookup — no API calls or metric enrichment */
+  async getCompanyProductionValue(companyId: string): Promise<number | null> {
+    const company = await this.prisma.company.findUnique({
+      where: { companyId },
+      select: { productionValue: true },
+    });
+    return company?.productionValue ?? null;
   }
 
   private async enrichCompanyWithMetrics(

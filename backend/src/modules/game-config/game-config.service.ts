@@ -1,8 +1,9 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { WarEraApiService } from '../warera-api/warera-api.service';
+import { GameConfigResponse, GameConfigItemRaw, extractData } from '../warera-api/warera-api.types';
 import { PrismaService } from '../../prisma.service';
 
-interface GameItem {
+export interface GameItem {
   code: string;
   name: string;
   icon?: string;
@@ -35,20 +36,18 @@ export class GameConfigService implements OnModuleInit {
 
     try {
       this.logger.log('Fetching game configuration...');
-      const config = await this.apiService.request<any>('gameConfig.getGameConfig');
+      const config = await this.apiService.request<GameConfigResponse>('gameConfig.getGameConfig');
+      const data = extractData(config);
       
-      // Handle batch response format (array with single element)
-      const data = Array.isArray(config) ? config[0] : config;
-      
-      if (data?.result?.data?.items) {
-        const items = data.result.data.items;
+      if (data?.items) {
+        const items = data.items;
         
         // Handle both object and array formats
-        const itemsArray = Array.isArray(items) 
+        const itemsArray: GameConfigItemRaw[] = Array.isArray(items) 
           ? items 
           : Object.values(items);
         
-        this.itemsCache = itemsArray.map((item: any, index: number) => ({
+        this.itemsCache = itemsArray.map((item, index) => ({
           code: item.code || item.id,
           name: item.name || item.displayName || item.code || item.id,
           icon: item.icon || item.iconUrl || null,

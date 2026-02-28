@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { WarEraApiService } from '../warera-api/warera-api.service';
+import { TopOrdersResponse } from '../warera-api/warera-api.types';
 import { GameConfigService } from '../game-config/game-config.service';
 import { PrismaService } from '../../prisma.service';
 
@@ -36,14 +37,11 @@ export class TradingOrderService {
     }));
 
     try {
-      const responses = await this.apiService.batchRequest<any>(endpoints);
+      const responses = await this.apiService.batchRequest<TopOrdersResponse>(endpoints);
       const timestamp = new Date();
 
-      // tRPC batch responses are objects with numbered keys, not arrays
-      const responsesArray = Array.isArray(responses) ? responses : Object.values(responses);
-
-      for (let i = 0; i < responsesArray.length; i++) {
-        const response = responsesArray[i];
+      for (let i = 0; i < responses.length; i++) {
+        const response = responses[i];
         const itemCode = itemCodes[i];
 
         if (response?.result?.data) {

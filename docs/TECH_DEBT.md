@@ -4,21 +4,14 @@ Known issues and improvements to address when time permits.
 
 ---
 
-### TD-003: `as any` cast in production-calculator controller
-
-**Scope:** Backend — `production-calculator.controller.ts`  
-**Severity:** Low  
-**Example:** `{ companyId } as any` is passed to `calculateProductionMetrics()` which expects a full `CompanyData` object. The method accesses `company.productionValue` which would be `undefined` from this partial object.  
-**Recommendation:** Investigate whether this endpoint is actively used. If so, either load the full company data first or refactor the method to accept `companyId` directly.
-
 ---
 
-### TD-004: `any` typed API responses across backend services
+### TD-005: `any` typed `ProfitScenario.breakdown`
 
-**Scope:** Backend — all `WarEraApiService.request()` call sites  
+**Scope:** Backend — `production-calculator/production-calculator.service.ts`  
 **Severity:** Low  
-**Example:** `fetchProductionBonus` in `company.service.ts` types the response as `any`. This pattern is used consistently across the codebase (e.g., data collection, game config fetching).  
-**Recommendation:** Define response interfaces for each WarEra API endpoint and use them as type parameters in `apiService.request<T>()`. Do all at once for consistency.
+**Example:** `breakdown: any` in the `ProfitScenario` interface. The breakdown object has different shapes depending on the scenario (buy inputs vs self-produce vs raw material), so a union or discriminated type would be appropriate.  
+**Recommendation:** Define a `ProfitBreakdown` interface (or a union of scenario-specific breakdown types) to replace `any`.
 
 ---
 
@@ -37,3 +30,19 @@ Known issues and improvements to address when time permits.
 **Scope:** Frontend, primarily `CompanyDetail.tsx`  
 **Severity:** Low  
 **Resolution:** Imported `Worker` interface from `client.ts`, explicitly typed `workers` as `Worker[]`, removed all 8 `any` annotations. Types now inferred correctly from the array type.
+
+---
+
+### ~~TD-003: `as any` cast in production-calculator controller~~ ✅ Resolved 2026-02-28
+
+**Scope:** Backend — `production-calculator.controller.ts`  
+**Severity:** Low  
+**Resolution:** Refactored `calculateProductionMetrics()` to accept `productionValue: number` directly instead of a full `CompanyData` object. Controller now loads the company via `CompanyService.getCompanyProductionValue()` (lightweight DB-only query). Also properly typed `calculateRawMaterialProfit()` params (`CompanyData`, `GameItem`) — exported `GameItem` from `game-config.service.ts`.
+
+---
+
+### ~~TD-004: `any` typed API responses across backend services~~ ✅ Resolved 2026-02-28
+
+**Scope:** Backend — all `WarEraApiService.request()` call sites  
+**Severity:** Low  
+**Resolution:** Created `warera-api/warera-api.types.ts` with typed interfaces for all tRPC API responses (prices, game config, companies, work offers, workers, users, MUs, transactions, trading orders) plus a generic `TrpcResponse<T>` wrapper and `extractData()` helper. Applied typed responses across all 5 services: `market-price`, `game-config`, `company`, `mu`, `trading-order`. Eliminated all 9 `request<any>()` calls and 2 `batchRequest<any>()` calls.

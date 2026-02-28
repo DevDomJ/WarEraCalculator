@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { WarEraApiService } from '../warera-api/warera-api.service';
+import { PricesResponse, extractData } from '../warera-api/warera-api.types';
 import { PrismaService } from '../../prisma.service';
 
 @Injectable()
@@ -14,15 +15,10 @@ export class MarketPriceService {
   async fetchAndStorePrices(): Promise<void> {
     try {
       this.logger.log('Fetching market prices...');
-      let response = await this.apiService.request<any>('itemTrading.getPrices');
+      const response = await this.apiService.request<PricesResponse>('itemTrading.getPrices');
+      const prices = extractData(response);
       
-      // Handle batch response format (array)
-      if (Array.isArray(response) && response.length > 0) {
-        response = response[0];
-      }
-      
-      if (response?.result?.data) {
-        const prices = response.result.data;
+      if (prices) {
         this.logger.log(`Processing ${Object.keys(prices).length} prices`);
         const timestamp = new Date();
         

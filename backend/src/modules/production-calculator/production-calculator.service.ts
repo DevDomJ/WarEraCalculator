@@ -1,6 +1,6 @@
 import { Injectable, Logger, forwardRef, Inject } from '@nestjs/common';
 import { CompanyService, CompanyData } from '../company/company.service';
-import { GameConfigService } from '../game-config/game-config.service';
+import { GameConfigService, GameItem } from '../game-config/game-config.service';
 import { PrismaService } from '../../prisma.service';
 
 export interface Recipe {
@@ -67,12 +67,12 @@ export class ProductionCalculatorService {
   }
 
   calculateProductionMetrics(
-    company: CompanyData,
+    productionValue: number,
     productionBonus: number = 0,
     fidelityBonus: number = 0,
     maxEnergy: number = 70,
   ): ProductionMetrics {
-    const ppPerWork = company.productionValue * (1 + productionBonus + fidelityBonus);
+    const ppPerWork = productionValue * (1 + productionBonus + fidelityBonus);
     const actionsPerDay = maxEnergy * 0.24;
     const totalPP = actionsPerDay * ppPerWork;
 
@@ -81,7 +81,7 @@ export class ProductionCalculatorService {
       workActionsPerDay: actionsPerDay,
       totalProductionPointsPerDay: totalPP,
       formula: {
-        ppPerWork: `${company.productionValue} × (1 + ${productionBonus} + ${fidelityBonus}) = ${ppPerWork}`,
+        ppPerWork: `${productionValue} × (1 + ${productionBonus} + ${fidelityBonus}) = ${ppPerWork}`,
         actionsPerDay: `${maxEnergy} × 0.24 = ${actionsPerDay}`,
         totalPP: `${actionsPerDay} × ${ppPerWork} = ${totalPP}`,
       },
@@ -110,7 +110,7 @@ export class ProductionCalculatorService {
       return this.calculateRawMaterialProfit(company, item, productionBonus);
     }
 
-    const metrics = this.calculateProductionMetrics(company, productionBonus);
+    const metrics = this.calculateProductionMetrics(company.productionValue, productionBonus);
     const outputPrice = await this.getLatestPrice(outputItemCode);
     
     const totalDailyWage = this.companyService.calculateTotalDailyWage(company.workers || []);
@@ -190,11 +190,11 @@ export class ProductionCalculatorService {
   }
 
   private async calculateRawMaterialProfit(
-    company: any,
-    item: any,
+    company: CompanyData,
+    item: GameItem,
     productionBonus: number,
   ): Promise<{ scenarioA: ProfitScenario; scenarioB: ProfitScenario | null }> {
-    const metrics = this.calculateProductionMetrics(company, productionBonus);
+    const metrics = this.calculateProductionMetrics(company.productionValue, productionBonus);
     const outputPrice = await this.getLatestPrice(item.code);
     
     const totalDailyWage = this.companyService.calculateTotalDailyWage(company.workers || []);

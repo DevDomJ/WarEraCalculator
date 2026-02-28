@@ -109,7 +109,9 @@ export class WarEraApiService {
       this.logger.debug(`Batch response type: ${typeof response.data}, isArray: ${Array.isArray(response.data)}`);
       this.logger.debug(`Batch response keys: ${Object.keys(response.data || {}).join(', ')}`);
       
-      return response.data;
+      // Normalize: tRPC batch responses can be arrays or objects with numbered keys
+      const data = response.data;
+      return Array.isArray(data) ? data : Object.values(data);
     } catch (error) {
       this.logger.error('Batch request failed', error);
       if (error instanceof AxiosError && error.response) {

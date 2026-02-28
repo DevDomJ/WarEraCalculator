@@ -123,6 +123,7 @@ WarEraCalculator/
 │   │   │   └── item-display-names.ts # Item display name mappings
 │   │   ├── modules/
 │   │   │   ├── warera-api/           # HTTP client with rate limiting
+│   │   │   │   └── warera-api.types.ts   # Typed interfaces for all tRPC API responses
 │   │   │   ├── game-config/          # Game configuration & items
 │   │   │   ├── market-price/         # Price fetching & storage
 │   │   │   ├── trading-order/        # Order fetching with batch support
