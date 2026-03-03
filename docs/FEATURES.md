@@ -278,7 +278,8 @@ Players need to view and manage their companies, see worker details, and underst
 ### Implementation
 - Backend: `CompanyService` fetches companies from WarEra API by userId
 - Resolves region IDs to human-readable names via `region.getById` API (cached in-memory)
-- Stores region name and ISO country code per company for country flag emoji display
+- Resolves current occupier's country code via `country.getCountryById` (separate cache), since regions can be occupied by a different country than the original owner
+- Stores region name and occupier's ISO country code per company for country flag emoji display
 - Fetches work offers and worker details (wages, energy, production value, fidelity)
 - Fetches actual daily production stats per worker via `work.getStatsByWorkerAndCompany`
 - Database models: `Company` and `Worker` with full worker stats

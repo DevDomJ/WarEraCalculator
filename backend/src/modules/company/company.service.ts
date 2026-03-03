@@ -11,6 +11,7 @@ import {
   UserLiteResponse,
   WorkerStatsResponse,
   RegionByIdResponse,
+  CountryByIdResponse,
 } from '../warera-api/warera-api.types';
 import { PrismaService } from '../../prisma.service';
 import { ProductionCalculatorService } from '../production-calculator/production-calculator.service';
@@ -105,6 +106,7 @@ export class CompanyService {
   private readonly TIMEZONE = 'Europe/Berlin';
   private readonly AUTO_PRODUCTION_POINTS_PER_LEVEL_PER_DAY = 24;
   private regionCache = new Map<string, { name: string; countryCode: string }>();
+  private countryCache = new Map<string, string>();
 
   constructor(
     private readonly apiService: WarEraApiService,
@@ -119,7 +121,25 @@ export class CompanyService {
       const response = await this.apiService.request<RegionByIdResponse>('region.getById', { regionId });
       const data = extractData(response);
       if (data?.name) {
-        const result = { name: data.name, countryCode: data.countryCode || '' };
+        // Resolve current occupier's country code (not the original owner's countryCode on the region)
+        let countryCode = data.countryCode || '';
+        if (data.country) {
+          if (this.countryCache.has(data.country)) {
+            countryCode = this.countryCache.get(data.country);
+          } else {
+            try {
+              const countryResponse = await this.apiService.request<CountryByIdResponse>('country.getCountryById', { countryId: data.country });
+              const country = extractData(countryResponse);
+              if (country?.code) {
+                countryCode = country.code;
+                this.countryCache.set(data.country, countryCode);
+              }
+            } catch (error) {
+              this.logger.warn(`Failed to resolve country for region ${regionId}: ${error.message}`);
+            }
+          }
+        }
+        const result = { name: data.name, countryCode };
         this.regionCache.set(regionId, result);
         return result;
       }

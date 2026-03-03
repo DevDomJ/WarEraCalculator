@@ -84,9 +84,18 @@ export type CompanyByIdResponse = TrpcResponse<CompanyRaw>;
 export interface RegionData {
   name: string;
   countryCode: string;
+  country?: string;
+  initialCountry?: string;
 }
 
 export type RegionByIdResponse = TrpcResponse<RegionData>;
+
+export interface CountryData {
+  name: string;
+  code: string;
+}
+
+export type CountryByIdResponse = TrpcResponse<CountryData>;
 
 export interface CompanyListData {
   items: string[];
