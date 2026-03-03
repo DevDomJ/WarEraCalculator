@@ -99,9 +99,11 @@ See PRODUCTION_DEPLOY.md for detailed deployment instructions (private file, not
 **Summary:**
 1. Build code in dev directory: `npm run build` (backend and frontend)
 2. Copy `dist/` folders to production location
-3. Restart production: `pm2 restart warera-prod`
-4. Verify: `pm2 status` and `pm2 logs warera-prod`
-5. NEVER touch database files
+3. If schema changed: copy `schema.prisma` to production and run `npx prisma generate`
+4. If new migrations: copy migration folders and run `npx prisma migrate deploy`
+5. Restart production: `pm2 restart warera-prod`
+6. Verify: `pm2 status` and `pm2 logs warera-prod`
+7. NEVER touch database files
 
 ### Database Migrations
 ```bash

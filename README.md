@@ -92,9 +92,10 @@ npm run build
 1. ✅ Build code in dev directory (frontend and backend)
 2. ✅ Create timestamped backup of production database
 3. ✅ Copy `dist/` folders to production location
-4. ✅ Run database migrations in production (if any new migrations exist)
-5. ✅ Restart production: `pm2 restart warera-prod`
-6. ✅ Verify: `pm2 status` and `pm2 logs warera-prod`
+4. ✅ Copy `schema.prisma` to production and run `npx prisma generate` (if schema changed)
+5. ✅ Copy new migration folders and run `npx prisma migrate deploy` (if migrations exist)
+6. ✅ Restart production: `pm2 restart warera-prod`
+7. ✅ Verify: `pm2 status` and `pm2 logs warera-prod`
 
 **Database Migration Command (Production):**
 ```bash
