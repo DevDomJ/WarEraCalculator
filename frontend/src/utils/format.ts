@@ -13,3 +13,16 @@ export function formatCurrency(value: number, decimals = 3): string {
 export function formatCurrencyString(value: number, decimals = 3): string {
   return `${value.toFixed(decimals)} 🪙`
 }
+
+/** Convert a 2-letter ISO country code to its flag emoji */
+export function countryCodeToFlag(code: string): string {
+  if (!/^[A-Za-z]{2}$/.test(code)) return ''
+  return code.toUpperCase().replace(/./g, c => String.fromCodePoint(0x1F1E5 + c.charCodeAt(0) - 64))
+}
+
+/** Format region display with optional country flag */
+export function formatRegion(regionName?: string, countryCode?: string, regionId?: string): string {
+  const flag = countryCode ? countryCodeToFlag(countryCode) : ''
+  const name = regionName || regionId || ''
+  return flag ? `${flag} ${name}` : name
+}

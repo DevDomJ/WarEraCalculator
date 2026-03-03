@@ -191,7 +191,7 @@ This table tracks all planned features and their implementation status.
 | F-12 | Responsive UI | ✅ Implemented | Tailwind CSS responsive grid, works on desktop and mobile |
 | F-13 | Item catalog with game config | ✅ Implemented | Categories, display names, icons, full item grid |
 | F-14 | Batch API requests | ✅ Implemented | Trading orders batched (30 items per batch) |
-| F-15 | Company management | ✅ Implemented | Fetch companies by userId, worker details, drag & drop reorder |
+| F-15 | Company management | ✅ Implemented | Fetch companies by userId, worker details, drag & drop reorder, region name with country flag |
 | F-16 | Production analytics | ✅ Implemented | Track actual vs expected PP, efficiency metrics, 30-day chart |
 | F-17 | Production bonus calculation | ✅ Implemented | Fetched from WarEra API (`company.getProductionBonus`) |
 | F-18 | Ethics system integration | ✅ Implemented | Handled server-side by WarEra API (included in production bonus) |

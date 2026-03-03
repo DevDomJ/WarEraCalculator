@@ -10,6 +10,7 @@ import {
   WorkersResponse,
   UserLiteResponse,
   WorkerStatsResponse,
+  RegionByIdResponse,
 } from '../warera-api/warera-api.types';
 import { PrismaService } from '../../prisma.service';
 import { ProductionCalculatorService } from '../production-calculator/production-calculator.service';
@@ -55,6 +56,8 @@ export interface CompanyData {
   name: string;
   type: string;
   region: string;
+  regionName?: string;
+  countryCode?: string;
   productionValue: number;
   maxProduction: number;
   energyConsumption: number;
@@ -101,6 +104,7 @@ export class CompanyService {
   private readonly ENERGY_PER_WORK_ACTION = 10;
   private readonly TIMEZONE = 'Europe/Berlin';
   private readonly AUTO_PRODUCTION_POINTS_PER_LEVEL_PER_DAY = 24;
+  private regionCache = new Map<string, { name: string; countryCode: string }>();
 
   constructor(
     private readonly apiService: WarEraApiService,
@@ -108,6 +112,22 @@ export class CompanyService {
     @Inject(forwardRef(() => ProductionCalculatorService))
     private readonly productionCalculatorService: ProductionCalculatorService,
   ) {}
+
+  private async resolveRegion(regionId: string): Promise<{ name: string; countryCode: string } | null> {
+    if (this.regionCache.has(regionId)) return this.regionCache.get(regionId);
+    try {
+      const response = await this.apiService.request<RegionByIdResponse>('region.getById', { regionId });
+      const data = extractData(response);
+      if (data?.name) {
+        const result = { name: data.name, countryCode: data.countryCode || '' };
+        this.regionCache.set(regionId, result);
+        return result;
+      }
+    } catch (error) {
+      this.logger.debug(`Failed to resolve region ${regionId}: ${error.message}`);
+    }
+    return null;
+  }
 
   private async fetchProductionBonus(companyId: string): Promise<ProductionBonusBreakdown> {
     try {
@@ -426,12 +446,16 @@ export class CompanyService {
             this.enrichWorkerWithMetrics(w, bonusMultiplier, productionPerUnit)
           );
 
+          const regionInfo = await this.resolveRegion(company.region);
+
           const companyDataObj: CompanyData = {
             companyId: company._id || company.id,
             userId,
             name: company.name,
             type: company.itemCode || company.type,
             region: company.region,
+            regionName: regionInfo?.name,
+            countryCode: regionInfo?.countryCode,
             productionValue: company.production || 0,
             maxProduction,
             energyConsumption: workOffer?.energyConsumption || 10,
@@ -448,6 +472,8 @@ export class CompanyService {
               name: companyDataObj.name,
               type: companyDataObj.type,
               region: companyDataObj.region,
+              regionName: companyDataObj.regionName,
+              countryCode: companyDataObj.countryCode,
               productionValue: companyDataObj.productionValue,
               maxProduction: companyDataObj.maxProduction,
               energyConsumption: companyDataObj.energyConsumption,
@@ -460,6 +486,8 @@ export class CompanyService {
               name: companyDataObj.name,
               type: companyDataObj.type,
               region: companyDataObj.region,
+              regionName: companyDataObj.regionName,
+              countryCode: companyDataObj.countryCode,
               productionValue: companyDataObj.productionValue,
               maxProduction: companyDataObj.maxProduction,
               energyConsumption: companyDataObj.energyConsumption,

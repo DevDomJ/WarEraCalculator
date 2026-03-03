@@ -102,6 +102,8 @@ export interface Company {
   name: string
   type: string
   region: string
+  regionName?: string
+  countryCode?: string
   productionValue: number
   maxProduction: number
   energyConsumption: number

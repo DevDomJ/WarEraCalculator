@@ -79,6 +79,15 @@ export interface CompanyRaw {
 
 export type CompanyByIdResponse = TrpcResponse<CompanyRaw>;
 
+// --- region ---
+
+export interface RegionData {
+  name: string;
+  countryCode: string;
+}
+
+export type RegionByIdResponse = TrpcResponse<RegionData>;
+
 export interface CompanyListData {
   items: string[];
   nextCursor?: string;

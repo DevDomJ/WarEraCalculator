@@ -167,7 +167,7 @@ The project uses **SQLite** via **Prisma ORM**. This is a deliberate and final d
 | `Item` | Goods catalog (item codes, names, categories, production data) | ✅ |
 | `PriceHistory` | Historical price data (price, volume, highest buy, lowest sell) | ✅ |
 | `TradingOrder` | Current buy/sell orders snapshot | ✅ |
-| `Company` | User's companies (type, region, production value, automated engine) | ✅ |
+| `Company` | User's companies (type, region, regionName, countryCode, production value, automated engine) | ✅ |
 | `Worker` | Company workers (wage, energy, production, fidelity) | ✅ |
 | `ProductionHistory` | Production tracking (actual vs expected PP, variance) | ✅ |
 

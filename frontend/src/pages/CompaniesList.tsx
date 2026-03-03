@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { formatBonus } from '../utils/format'
+import { formatBonus, formatRegion } from '../utils/format'
 import CurrencyValue from '../components/CurrencyValue'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
@@ -53,10 +53,11 @@ function SortableCompanyCard({ company }: { company: Company }) {
             <ItemIcon code={company.type} size="md" />
             <div>
               <h3 className="text-xl font-bold text-white">{company.name}</h3>
-              <p className="text-gray-400">{company.type} • {company.region}</p>
+              <p className="text-gray-400">{company.type} • {formatRegion(company.regionName, company.countryCode, company.region)}</p>
             </div>
           </div>
           <div className="text-right">
+            <p className="text-xs text-gray-600 font-mono">{company.companyId}</p>
             <p className="text-sm text-gray-400">Workers</p>
             <p className="text-lg font-bold text-white">{workers.length}</p>
           </div>

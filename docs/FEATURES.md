@@ -277,6 +277,8 @@ Players need to view and manage their companies, see worker details, and underst
 
 ### Implementation
 - Backend: `CompanyService` fetches companies from WarEra API by userId
+- Resolves region IDs to human-readable names via `region.getById` API (cached in-memory)
+- Stores region name and ISO country code per company for country flag emoji display
 - Fetches work offers and worker details (wages, energy, production value, fidelity)
 - Fetches actual daily production stats per worker via `work.getStatsByWorkerAndCompany`
 - Database models: `Company` and `Worker` with full worker stats
@@ -289,6 +291,8 @@ Players need to view and manage their companies, see worker details, and underst
   - `GET /api/companies/:id/worker/:workerId/stats?days=X` — Get worker daily production stats
   - `POST /api/companies/reorder` — Reorder companies (drag & drop)
 - Frontend: `CompaniesList` page with drag & drop reordering (@dnd-kit), daily profit per company card, aggregated summary card (`CompaniesSummary` component), `CompanyDetail` page with full metrics and clickable workers, `WorkerDetail` page with worker info card and 30-day production bar chart
+- Region displayed with country flag emoji (ISO country code → regional indicator symbols)
+- Company ID shown in muted monospace for easy reference
 - User ID stored in localStorage for persistence
 
 ---

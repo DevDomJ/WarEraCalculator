@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { formatBonus } from '../utils/format'
+import { formatBonus, formatRegion } from '../utils/format'
 import { useParams, useNavigate } from 'react-router-dom'
 import { companyApi, itemsApi, Worker } from '../api/client'
 import ItemIcon from '../components/ItemIcon'
@@ -76,10 +76,11 @@ export default function CompanyDetail() {
       <div className="bg-gray-800 rounded-lg shadow p-6 mb-6">
         <div className="flex items-center gap-3 mb-4">
           <ItemIcon code={company.type} size="lg" displayName={outputItem?.displayName} />
-          <div>
+          <div className="flex-1">
             <h2 className="text-3xl font-bold text-white">{company.name}</h2>
-            <p className="text-gray-400">{company.type} • {company.region}</p>
+            <p className="text-gray-400">{company.type} • {formatRegion(company.regionName, company.countryCode, company.region)}</p>
           </div>
+          <p className="text-xs text-gray-600 font-mono self-start">{company.companyId}</p>
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
