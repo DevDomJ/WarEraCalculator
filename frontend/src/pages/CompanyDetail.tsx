@@ -6,6 +6,7 @@ import ItemIcon from '../components/ItemIcon'
 import CurrencyValue from '../components/CurrencyValue'
 import ProductionBonusTooltip from '../components/ProductionBonusTooltip'
 import ProfitSection from '../components/ProfitSection'
+import ProfitSimulator from '../components/ProfitSimulator'
 
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>()
@@ -54,6 +55,9 @@ export default function CompanyDetail() {
   if (!company) return <div className="text-gray-300">Loading...</div>
 
   const workers: Worker[] = company.workers || []
+  const avgWagePerPP = workers.length > 0
+    ? workers.reduce((s, w) => s + (w.wage || 0), 0) / workers.length
+    : 0
 
   return (
     <div>
@@ -226,6 +230,14 @@ export default function CompanyDetail() {
           </div>
         )}
       </div>
+
+      {company.profitSimulatorData && (
+        <ProfitSimulator
+          data={company.profitSimulatorData}
+          currentWagePerPP={avgWagePerPP}
+          outputItemName={outputItem?.displayName || company.type}
+        />
+      )}
     </div>
   )
 }

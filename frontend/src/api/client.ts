@@ -103,6 +103,13 @@ export interface CompaniesResponse {
   summary: CompaniesSummary
 }
 
+export interface ProfitSimulatorData {
+  outputPrice: number
+  inputCostPerUnit: number
+  effectivePPPerUnit: number
+  maxProfitableWage: number | null
+}
+
 export interface Company {
   companyId: string
   userId: string
@@ -122,6 +129,7 @@ export interface Company {
   dailyProfitMetrics?: DailyProfitMetrics
   workerProfitMetrics?: WorkerProfitMetrics
   automationProfitMetrics?: AutomationProfitMetrics
+  profitSimulatorData?: ProfitSimulatorData
 }
 
 export interface ProductionMetrics {

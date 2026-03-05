@@ -58,6 +58,13 @@ export interface CompaniesSummary {
   totalDailyProfit: number;
 }
 
+export interface ProfitSimulatorData {
+  outputPrice: number;
+  inputCostPerUnit: number;
+  effectivePPPerUnit: number;
+  maxProfitableWage: number | null;
+}
+
 export interface CompanyData {
   companyId: string;
   userId: string;
@@ -77,6 +84,7 @@ export interface CompanyData {
   workerProfitMetrics?: WorkerProfitMetrics;
   automationProfitMetrics?: AutomationProfitMetrics;
   automatedEngineLevel?: number;
+  profitSimulatorData?: ProfitSimulatorData;
 }
 
 export interface WorkerData {
@@ -711,6 +719,14 @@ export class CompanyService {
       };
     }
     
+    // Calculate profit simulator data (always, even without workers — for "what if I hire?" scenarios)
+    const outputPrice = await this.getOutputPrice(company.type);
+    const inputCostResult = await this.calculateInputCost(company.type, 1);
+    const inputCostPerUnit = inputCostResult.cost;
+    const effectivePPPerUnit = productionPerUnit / (1 + bonusMultiplier);
+    const maxProfitableWage = effectivePPPerUnit > 0 && outputPrice > 0 ? (outputPrice - inputCostPerUnit) / effectivePPPerUnit : null;
+    const profitSimulatorData: ProfitSimulatorData = { outputPrice, inputCostPerUnit, effectivePPPerUnit, maxProfitableWage };
+
     return {
       ...company,
       workers,
@@ -719,6 +735,7 @@ export class CompanyService {
       workerProfitMetrics,
       automationProfitMetrics,
       dailyProfitMetrics,
+      profitSimulatorData,
     };
   }
 
