@@ -17,7 +17,7 @@ export default function InfoTooltip({ content, children }: InfoTooltipProps) {
     <div className="group relative inline-block">
       {children}
       
-      <div className="invisible group-hover:visible absolute z-10 max-w-sm p-3 bg-[#1a1a1a] text-white rounded-lg shadow-lg bottom-full left-1/2 transform -translate-x-1/2 mb-2">
+      <div className="invisible group-hover:visible absolute z-10 w-max max-w-lg p-3 bg-[#1a1a1a] text-white rounded-lg shadow-lg bottom-full left-1/2 transform -translate-x-1/2 mb-2">
         <div className="text-sm text-gray-300 whitespace-pre-line">{content}</div>
         
         {/* Arrow pointing down */}
