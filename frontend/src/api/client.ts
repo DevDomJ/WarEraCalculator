@@ -70,6 +70,13 @@ export interface ProfitMetricsBase {
   dailyInputCost: number
   profit: number
   costPerUnit: number
+  formulas: {
+    dailyOutput: string
+    dailyRevenue: string
+    dailyInputCost: string
+    profit: string
+    costPerUnit: string
+  }
 }
 
 export interface DailyProfitMetrics extends ProfitMetricsBase {

@@ -31,20 +31,24 @@ export default function ProfitSection({ title, metrics, outputItemName, showWage
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <div>
           <p className="text-xs text-gray-400">Daily Output</p>
-          <p className="text-lg font-bold text-white">
-            {metrics.dailyOutput.toFixed(2)}
-            <span className="text-sm text-gray-400 ml-1">{outputItemName}</span>
-          </p>
+          <InfoTooltip content={metrics.formulas.dailyOutput}>
+            <p className="text-lg font-bold text-white cursor-help">
+              {metrics.dailyOutput.toFixed(2)}
+              <span className="text-sm text-gray-400 ml-1">{outputItemName}</span>
+            </p>
+          </InfoTooltip>
         </div>
         <div>
           <p className="text-xs text-gray-400">Daily Revenue</p>
-          <p className="text-lg font-bold text-green-400">
-            <CurrencyValue value={metrics.dailyRevenue} />
-          </p>
+          <InfoTooltip content={metrics.formulas.dailyRevenue}>
+            <p className="text-lg font-bold text-green-400 cursor-help">
+              <CurrencyValue value={metrics.dailyRevenue} />
+            </p>
+          </InfoTooltip>
         </div>
         <div>
           <p className="text-xs text-gray-400">Cost/Unit</p>
-          <InfoTooltip content={showWage ? "Total costs (wage + inputs) per unit produced" : "Input costs per unit produced"}>
+          <InfoTooltip content={metrics.formulas.costPerUnit}>
             <p className="text-lg font-bold text-orange-400 cursor-help">
               <CurrencyValue value={metrics.costPerUnit} />
             </p>
@@ -53,14 +57,16 @@ export default function ProfitSection({ title, metrics, outputItemName, showWage
         {hasInputCost && (
           <div>
             <p className="text-xs text-gray-400">Daily Input Cost</p>
-            <p className="text-lg font-bold text-orange-400">
-              <CurrencyValue value={metrics.dailyInputCost} />
-            </p>
+            <InfoTooltip content={metrics.formulas.dailyInputCost}>
+              <p className="text-lg font-bold text-orange-400 cursor-help">
+                <CurrencyValue value={metrics.dailyInputCost} />
+              </p>
+            </InfoTooltip>
           </div>
         )}
         <div>
           <p className="text-xs text-gray-400">Profit</p>
-          <InfoTooltip content={showWage ? (hasInputCost ? "Revenue - Wage - Input Cost" : "Revenue - Wage") : (hasInputCost ? "Revenue - Input Cost" : "Revenue")}>
+          <InfoTooltip content={metrics.formulas.profit}>
             <p className={`text-lg font-bold cursor-help ${metrics.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
               <CurrencyValue value={metrics.profit} />
             </p>

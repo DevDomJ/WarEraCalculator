@@ -121,7 +121,7 @@ export default function CompanyDetail() {
           />
         )}
 
-        {company.automationProfitMetrics && company.automatedEngineLevel && company.automatedEngineLevel > 0 && workers.length > 0 && (
+        {company.automationProfitMetrics && company.automatedEngineLevel && company.automatedEngineLevel > 0 && (
           <ProfitSection
             title="Automation Profit Analysis"
             metrics={company.automationProfitMetrics}
@@ -130,7 +130,8 @@ export default function CompanyDetail() {
           />
         )}
 
-        {company.dailyProfitMetrics && (
+        {/* Only show combined daily totals when both sources exist; otherwise the single section above already shows the detailed breakdown */}
+        {company.dailyProfitMetrics && company.workerProfitMetrics && company.automationProfitMetrics && (
           <ProfitSection
             title="Daily Profit Analysis"
             metrics={company.dailyProfitMetrics}

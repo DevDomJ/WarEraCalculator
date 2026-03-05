@@ -176,6 +176,10 @@ Players need to calculate whether producing and selling a specific item is profi
   - Self-production profit is not calculated separately — if you self-produce inputs, that profit shows on the input-producing company
 - REST API: `GET /api/production/:companyId/profit?outputItem=X`
 - Frontend: `CompanyDetail` page with `ProfitSection` component showing profit analysis
+  - All metric values (daily output, revenue, input cost, profit, cost/unit) have hover tooltips showing the calculation formula with actual numbers
+  - Worker Profit Analysis section shown when company has workers
+  - Automation Profit Analysis section shown when company has automated engine
+  - Daily Profit Analysis (combined totals) only shown when both workers and automation exist; otherwise the single relevant section provides the detailed breakdown
 - Uses real-time market prices as defaults
 - Production bonus adjustable via interactive input
 

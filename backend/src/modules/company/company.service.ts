@@ -30,6 +30,13 @@ export interface ProfitMetricsBase {
   dailyInputCost: number;
   profit: number;
   costPerUnit: number;
+  formulas: {
+    dailyOutput: string;
+    dailyRevenue: string;
+    dailyInputCost: string;
+    profit: string;
+    costPerUnit: string;
+  };
 }
 
 export interface DailyProfitMetrics extends ProfitMetricsBase {
@@ -196,6 +203,23 @@ export class CompanyService {
     return paidProduction * (1 + companyProductionBonus + fidelityBonus);
   }
 
+  private buildProfitFormula(revenue: number, wage: number, inputCost: number, profit: number): string {
+    const parts = [`${revenue.toFixed(3)} revenue`];
+    const costs: string[] = [];
+    if (wage > 0) costs.push(`${wage.toFixed(3)} wage`);
+    if (inputCost > 0) costs.push(`${inputCost.toFixed(3)} input cost`);
+    if (costs.length === 0) return `${parts[0]} = ${profit.toFixed(3)}`;
+    return `${parts[0]} - ${costs.join(' - ')} = ${profit.toFixed(3)}`;
+  }
+
+  private buildCostPerUnitFormula(wage: number, inputCost: number, output: number, costPerUnit: number): string {
+    const parts: string[] = [];
+    if (wage > 0) parts.push(`${wage.toFixed(3)} wage`);
+    if (inputCost > 0) parts.push(`${inputCost.toFixed(3)} input cost`);
+    const numerator = parts.length > 1 ? `(${parts.join(' + ')})` : parts[0] || '0';
+    return `${numerator} / ${output.toFixed(2)} units = ${costPerUnit.toFixed(4)}`;
+  }
+
   async calculateDailyProfitMetrics(
     workers: WorkerData[],
     outputItemCode: string,
@@ -205,19 +229,28 @@ export class CompanyService {
     const outputPrice = await this.getOutputPrice(outputItemCode);
     const dailyRevenue = dailyOutput * outputPrice;
     const dailyWage = workers.reduce((sum, w) => sum + (w.dailyWage || 0), 0);
-    const dailyInputCost = await this.calculateInputCost(outputItemCode, dailyOutput);
+    const inputCostResult = await this.calculateInputCost(outputItemCode, dailyOutput);
+    const dailyInputCost = inputCostResult.cost;
     
     const totalCosts = dailyWage + dailyInputCost;
     // Cost per unit includes both wage and input costs for worker production
     const costPerUnit = dailyOutput > 0 ? totalCosts / dailyOutput : 0;
+    const profit = dailyRevenue - dailyWage - dailyInputCost;
     
     return {
       dailyOutput,
       dailyRevenue,
       dailyWage,
       dailyInputCost,
-      profit: dailyRevenue - dailyWage - dailyInputCost,
+      profit,
       costPerUnit,
+      formulas: {
+        dailyOutput: `Sum of ${workers.length} workers' output (incl. bonus & fidelity) / ${productionPerUnit} PP/unit = ${dailyOutput.toFixed(2)}`,
+        dailyRevenue: `${dailyOutput.toFixed(2)} units × ${outputPrice.toFixed(4)}/ea = ${dailyRevenue.toFixed(3)}`,
+        profit: this.buildProfitFormula(dailyRevenue, dailyWage, dailyInputCost, profit),
+        dailyInputCost: inputCostResult.formula,
+        costPerUnit: this.buildCostPerUnitFormula(dailyWage, dailyInputCost, dailyOutput, costPerUnit),
+      },
     };
   }
 
@@ -233,22 +266,35 @@ export class CompanyService {
     automatedEngineLevel: number,
     outputItemCode: string,
     productionPerUnit: number,
+    productionBonusMultiplier: number = 0,
   ): Promise<AutomationProfitMetrics> {
-    const dailyProductionPoints = automatedEngineLevel * this.AUTO_PRODUCTION_POINTS_PER_LEVEL_PER_DAY;
+    const baseDailyPP = automatedEngineLevel * this.AUTO_PRODUCTION_POINTS_PER_LEVEL_PER_DAY;
+    const dailyProductionPoints = baseDailyPP * (1 + productionBonusMultiplier);
     const dailyOutput = dailyProductionPoints / productionPerUnit;
     const outputPrice = await this.getOutputPrice(outputItemCode);
     const dailyRevenue = dailyOutput * outputPrice;
-    const dailyInputCost = await this.calculateInputCost(outputItemCode, dailyOutput);
+    const inputCostResult = await this.calculateInputCost(outputItemCode, dailyOutput);
+    const dailyInputCost = inputCostResult.cost;
     
     // Cost per unit only includes input costs (automation has no wage)
     const costPerUnit = dailyOutput > 0 ? dailyInputCost / dailyOutput : 0;
+    const profit = dailyRevenue - dailyInputCost;
     
     return {
       dailyOutput,
       dailyRevenue,
       dailyInputCost,
-      profit: dailyRevenue - dailyInputCost,
+      profit,
       costPerUnit,
+      formulas: {
+        dailyOutput: productionBonusMultiplier > 0
+          ? `(${automatedEngineLevel} levels × ${this.AUTO_PRODUCTION_POINTS_PER_LEVEL_PER_DAY} PP/level/day) × (1 + ${(productionBonusMultiplier * 100).toFixed(0)}% bonus) / ${productionPerUnit} PP/unit = ${dailyOutput.toFixed(2)}`
+          : `(${automatedEngineLevel} levels × ${this.AUTO_PRODUCTION_POINTS_PER_LEVEL_PER_DAY} PP/level/day) / ${productionPerUnit} PP/unit = ${dailyOutput.toFixed(2)}`,
+        dailyRevenue: `${dailyOutput.toFixed(2)} units × ${outputPrice.toFixed(4)}/ea = ${dailyRevenue.toFixed(3)}`,
+        profit: this.buildProfitFormula(dailyRevenue, 0, dailyInputCost, profit),
+        dailyInputCost: inputCostResult.formula,
+        costPerUnit: this.buildCostPerUnitFormula(0, dailyInputCost, dailyOutput, costPerUnit),
+      },
     };
   }
 
@@ -266,14 +312,14 @@ export class CompanyService {
     return price.price;
   }
 
-  private async calculateInputCost(outputItemCode: string, dailyOutput: number): Promise<number> {
+  private async calculateInputCost(outputItemCode: string, dailyOutput: number): Promise<{ cost: number; formula: string }> {
     const recipe = await this.productionCalculatorService.getRecipeByItemCode(outputItemCode);
     
     if (!recipe || recipe.inputs.length === 0) {
-      return 0;
+      return { cost: 0, formula: 'No inputs required' };
     }
     
-    const inputCosts = await Promise.all(
+    const inputDetails = await Promise.all(
       recipe.inputs.map(async (input) => {
         const price = await this.prisma.priceHistory.findFirst({
           where: { itemCode: input.itemCode },
@@ -282,15 +328,22 @@ export class CompanyService {
         
         if (!price) {
           this.logger.warn(`No price data found for input item: ${input.itemCode}`);
-          return 0;
+          return { itemCode: input.itemCode, quantity: input.quantityRequired, price: 0, cost: 0 };
         }
         
-        return price.price * input.quantityRequired;
+        return { itemCode: input.itemCode, quantity: input.quantityRequired, price: price.price, cost: price.price * input.quantityRequired };
       })
     );
     
-    const totalInputCostPerUnit = inputCosts.reduce((sum, cost) => sum + cost, 0);
-    return totalInputCostPerUnit * dailyOutput;
+    const totalInputCostPerUnit = inputDetails.reduce((sum, d) => sum + d.cost, 0);
+    const totalCost = totalInputCostPerUnit * dailyOutput;
+    
+    const parts = inputDetails.map(d =>
+      `${d.quantity}× ${d.itemCode} @ ${d.price.toFixed(4)}/ea = ${d.cost.toFixed(4)}`
+    );
+    const formula = `Per unit: ${parts.join(' + ')} = ${totalInputCostPerUnit.toFixed(4)}\n× ${dailyOutput.toFixed(2)} units/day = ${totalCost.toFixed(3)}`;
+    
+    return { cost: totalCost, formula };
   }
 
   /**
@@ -613,7 +666,7 @@ export class CompanyService {
     
     // Calculate automation profit metrics
     const automationProfitMetrics = company.automatedEngineLevel > 0
-      ? await this.calculateAutomationProfitMetrics(company.automatedEngineLevel, company.type, productionPerUnit)
+      ? await this.calculateAutomationProfitMetrics(company.automatedEngineLevel, company.type, productionPerUnit, bonusMultiplier)
       : null;
     
     // Calculate total daily profit metrics (sum of worker + automation)
@@ -623,14 +676,38 @@ export class CompanyService {
       const totalDailyWage = workerProfitMetrics?.dailyWage || 0;
       const totalDailyInputCost = (workerProfitMetrics?.dailyInputCost || 0) + (automationProfitMetrics?.dailyInputCost || 0);
       const totalCosts = totalDailyWage + totalDailyInputCost;
+      const totalDailyRevenue = (workerProfitMetrics?.dailyRevenue || 0) + (automationProfitMetrics?.dailyRevenue || 0);
+      const totalProfit = (workerProfitMetrics?.profit || 0) + (automationProfitMetrics?.profit || 0);
+
+      // Build combined formula parts
+      const outputParts = [
+        workerProfitMetrics ? `${workerProfitMetrics.dailyOutput.toFixed(2)} workers` : null,
+        automationProfitMetrics ? `${automationProfitMetrics.dailyOutput.toFixed(2)} automation` : null,
+      ].filter(Boolean);
+
+      // Use the input cost formula from whichever source has it (or combine)
+      const inputCostFormula = workerProfitMetrics && automationProfitMetrics
+        ? `Workers: ${workerProfitMetrics.dailyInputCost.toFixed(3)} + Automation: ${automationProfitMetrics.dailyInputCost.toFixed(3)} = ${totalDailyInputCost.toFixed(3)}`
+        : (workerProfitMetrics?.formulas.dailyInputCost || automationProfitMetrics?.formulas.dailyInputCost || 'No inputs required');
+
+      const costPerUnit = totalDailyOutput > 0 ? totalCosts / totalDailyOutput : 0;
       
       dailyProfitMetrics = {
         dailyOutput: totalDailyOutput,
-        dailyRevenue: (workerProfitMetrics?.dailyRevenue || 0) + (automationProfitMetrics?.dailyRevenue || 0),
+        dailyRevenue: totalDailyRevenue,
         dailyWage: totalDailyWage,
         dailyInputCost: totalDailyInputCost,
-        profit: (workerProfitMetrics?.profit || 0) + (automationProfitMetrics?.profit || 0),
-        costPerUnit: totalDailyOutput > 0 ? totalCosts / totalDailyOutput : 0,
+        profit: totalProfit,
+        costPerUnit,
+        formulas: {
+          dailyOutput: `${outputParts.join(' + ')} = ${totalDailyOutput.toFixed(2)}`,
+          dailyRevenue: workerProfitMetrics && automationProfitMetrics
+            ? `${workerProfitMetrics.dailyRevenue.toFixed(3)} workers + ${automationProfitMetrics.dailyRevenue.toFixed(3)} automation = ${totalDailyRevenue.toFixed(3)}`
+            : (workerProfitMetrics?.formulas.dailyRevenue || automationProfitMetrics?.formulas.dailyRevenue || ''),
+          profit: this.buildProfitFormula(totalDailyRevenue, totalDailyWage, totalDailyInputCost, totalProfit),
+          dailyInputCost: inputCostFormula,
+          costPerUnit: this.buildCostPerUnitFormula(totalDailyWage, totalDailyInputCost, totalDailyOutput, costPerUnit),
+        },
       };
     }
     

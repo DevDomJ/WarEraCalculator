@@ -74,6 +74,13 @@ Total PP per Day = Work Actions per Day × PP per Work
 - Companies can have an automated engine upgrade (levels 0+)
 - Automated engines produce output without worker input
 - The `automatedEngineLevel` field on the Company model tracks this
+- Production bonus applies to automated production the same way as worker production
+
+```
+Base Daily PP = Automated Engine Level × 24 PP/level/day
+Daily PP (with bonus) = Base Daily PP × (1 + Production Bonus)
+Daily Output = Daily PP / Production Points per Unit
+```
 
 ---
 
