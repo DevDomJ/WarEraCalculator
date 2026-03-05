@@ -382,6 +382,31 @@ Players belong to military units (MUs) and need to view MU membership, member ac
 
 ---
 
+## F-20: Profit Simulator
+**Status:** ✅ Implemented
+
+### Requirement
+Players need to evaluate whether hiring workers at a given wage is profitable, and explore how changes in market price or wage affect per-unit profitability. This should work for all companies, including those without workers (to answer "should I hire here?").
+
+### Implementation
+- Backend: `ProfitSimulatorData` computed in `CompanyService.enrichCompanyWithMetrics()` for every company
+  - `outputPrice`: current market price of the output item
+  - `inputCostPerUnit`: cost of input materials per unit of output
+  - `effectivePPPerUnit`: production points per unit adjusted for production bonus (`productionPerUnit / (1 + bonusMultiplier)`)
+  - `maxProfitableWage`: highest wage per PP where each unit still breaks even, `null` when no price data exists
+- Frontend: `ProfitSimulator` component on `CompanyDetail` page
+  - Displays max profitable wage in a highlighted box
+  - Two editable inputs (wage per PP, output price) capped to 3 decimal digits
+  - Live-calculated per-unit breakdown: revenue, wage cost, input cost, profit
+  - Profit color-coded green/red based on positive/negative
+
+### Design Decisions
+- **Per-unit model**: Rather than simulating daily totals (which depend on unknowable worker energy/production stats), the simulator shows per-unit economics. If one unit is profitable, more units are always better.
+- **Frontend-side interactive calculation**: The what-if recalculation happens client-side for instant feedback on input changes. The backend provides the base data (`effectivePPPerUnit`, `inputCostPerUnit`) so the formula only lives in one place per concern.
+- **Available for all companies**: Even companies with no workers get simulator data, so players can evaluate whether hiring would be worthwhile before committing.
+
+---
+
 ## Adding New Features
 
 When adding a new feature:

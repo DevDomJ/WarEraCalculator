@@ -157,6 +157,7 @@ WarEraCalculator/
     │   │   ├── ProductionHistoryChart.tsx     # Production history chart
     │   │   ├── ProductionBonusTooltip.tsx     # Bonus breakdown tooltip
     │   │   ├── ProfitSection.tsx              # Profit metrics display
+    │   │   ├── ProfitSimulator.tsx            # Interactive per-unit profit simulator
     │   │   ├── CompaniesSummary.tsx           # Aggregated profit summary card
     │   │   ├── InfoTooltip.tsx                # Reusable info tooltip
     │   │   ├── ItemIcon.tsx                   # Reusable item icon
@@ -196,6 +197,7 @@ This table tracks all planned features and their implementation status.
 | F-17 | Production bonus calculation | ✅ Implemented | Fetched from WarEra API (`company.getProductionBonus`) |
 | F-18 | Ethics system integration | ✅ Implemented | Handled server-side by WarEra API (included in production bonus) |
 | F-19 | Military unit (MU) management | ✅ Implemented | MU membership, owned MUs, member stats, donations, inactive detection |
+| F-20 | Profit simulator | ✅ Implemented | Per-unit what-if calculator with editable wage/price, max profitable wage |
 
 > **For detailed feature documentation including requirements and design decisions, see [FEATURES.md](./FEATURES.md).**
 

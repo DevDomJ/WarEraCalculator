@@ -184,6 +184,7 @@ For the full directory tree, see [docs/PROJECT.md](docs/PROJECT.md#project-struc
 - Company detail page with metrics
 - Production calculator with formulas
 - Profit display and aggregated summary
+- Interactive per-unit profit simulator with editable wage/price
 
 ### Phase 8: Production History & Analytics ✅
 - Production tracking (actual vs expected)
