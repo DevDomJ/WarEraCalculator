@@ -7,9 +7,18 @@ import WorkerDetail from './pages/WorkerDetail'
 import MuList from './pages/MuList'
 import MuDetail from './pages/MuDetail'
 
+const USEFUL_LINKS: { name: string; url: string }[] = [
+  { name: 'WarEra Simulator', url: 'https://war-era.vercel.app' },
+  { name: 'Market Monitor', url: 'https://warera-market.info/monitor/' },
+  { name: 'Wealth Rate', url: 'https://wealthrate.vercel.app' },
+  { name: 'Factory Optimizer', url: 'https://3dcut.github.io/warera-company-calc/' },
+  { name: 'WarEra', url: 'https://app.warera.io/world' },
+  { name: 'WarEra Dev', url: 'https://dev.warera.io' },
+]
+
 function App() {
   return (
-    <div className="min-h-screen bg-gray-900" style={{ backgroundImage: 'linear-gradient(#111827, #111827)' }}>
+    <div className="min-h-screen flex flex-col bg-gray-900" style={{ backgroundImage: 'linear-gradient(#111827, #111827)' }}>
       <header className="bg-gray-800 shadow">
         <div className="max-w-7xl mx-auto py-6 px-4">
           <div className="flex justify-between items-center">
@@ -22,7 +31,7 @@ function App() {
           </div>
         </div>
       </header>
-      <main className="max-w-7xl mx-auto py-6 px-4">
+      <main className="flex-1 max-w-7xl mx-auto py-6 px-4">
         <Routes>
           <Route path="/" element={<GoodsOverview />} />
           <Route path="/item/:code" element={<ItemDetail />} />
@@ -33,6 +42,19 @@ function App() {
           <Route path="/mu/:muId" element={<MuDetail />} />
         </Routes>
       </main>
+      <footer className="bg-gray-800 border-t border-gray-700 mt-12 py-6 px-4">
+        <div className="max-w-7xl mx-auto">
+          <h3 className="text-sm font-semibold text-gray-400 mb-3">Useful Links</h3>
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            {USEFUL_LINKS.map(({ name, url }) => (
+              <a key={url} href={url} target="_blank" rel="noopener noreferrer"
+                className="text-sm text-blue-400 hover:text-blue-300">
+                {name}
+              </a>
+            ))}
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
