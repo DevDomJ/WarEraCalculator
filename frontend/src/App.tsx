@@ -31,7 +31,7 @@ function App() {
           </div>
         </div>
       </header>
-      <main className="flex-1 max-w-7xl mx-auto py-6 px-4">
+      <main className="flex-1 w-full max-w-7xl mx-auto py-6 px-4">
         <Routes>
           <Route path="/" element={<GoodsOverview />} />
           <Route path="/item/:code" element={<ItemDetail />} />
