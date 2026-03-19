@@ -204,6 +204,16 @@ export interface TransactionListData {
 
 export type TransactionListResponse = TrpcResponse<TransactionListData>;
 
+// --- upgrade ---
+
+export interface UpgradeData {
+  level: number;
+  status: string;
+  upgradeType: string;
+}
+
+export type UpgradeResponse = TrpcResponse<UpgradeData>;
+
 // --- Helper to extract data from a tRPC batch response ---
 
 /** Extract the inner data from a tRPC batch response (handles both array and single-object formats) */

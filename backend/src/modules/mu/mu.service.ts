@@ -7,6 +7,7 @@ import {
   MuRaw,
   UserLiteData,
   TransactionListResponse,
+  UpgradeResponse,
   TrpcBatchResponse,
 } from '../warera-api/warera-api.types';
 
@@ -14,7 +15,7 @@ import {
 export class MuService {
   private readonly logger = new Logger(MuService.name);
 
-  constructor(private readonly warEraApi: WarEraApiService) {}
+  constructor(private readonly warEraApi: WarEraApiService) { }
 
   /** Get the MU a user is a member of */
   async getMemberMu(userId: string) {
@@ -48,11 +49,13 @@ export class MuService {
     const mu = extractData(res);
     if (!mu) return null;
 
-    // Fetch user details and donation totals in parallel
+    // Fetch user details, donation totals, and upgrade levels in parallel
     const memberIds: string[] = mu.members ?? [];
-    const [userDetails, donations] = await Promise.all([
+    const [userDetails, donations, hqLevel, dormLevel] = await Promise.all([
       this.fetchUsersInBatches(memberIds),
       this.fetchDonationTotals(muId),
+      this.fetchUpgradeLevel(muId, 'headquarters'),
+      this.fetchUpgradeLevel(muId, 'dormitories'),
     ]);
 
     const enrichedMembers = memberIds.map((id) => {
@@ -99,12 +102,23 @@ export class MuService {
       ownerId: mu.user,
       memberCount: memberIds.length,
       upgrades: {
-        headquarters: mu.activeUpgradeLevels?.headquarters ?? 0,
-        dormitories: mu.activeUpgradeLevels?.dormitories ?? 0,
+        headquarters: hqLevel + 1,
+        dormitories: dormLevel + 1,
       },
       rankings: mu.rankings,
       members: enrichedMembers,
     };
+  }
+
+  /** Fetch the level of a specific upgrade type for an MU */
+  private async fetchUpgradeLevel(muId: string, upgradeType: string): Promise<number> {
+    try {
+      const res = await this.warEraApi.request<UpgradeResponse>('upgrade.getUpgradeByTypeAndEntity', { muId, upgradeType });
+      return extractData(res)?.level ?? 0;
+    } catch (err) {
+      this.logger.error(`Failed to fetch ${upgradeType} upgrade level for MU ${muId}`, err);
+      return 0;
+    }
   }
 
   /** Fetch donation transactions for the last 30 days and sum per user */
