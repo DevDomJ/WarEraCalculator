@@ -86,19 +86,44 @@ Daily Output = Daily PP / Production Points per Unit
 
 ## Production Bonus System
 
-Production bonuses increase output without increasing input costs. The total bonus comes from multiple sources:
+Production bonuses increase output without increasing input costs. The total bonus comes from four sources:
 
-### Bonus Sources
-- **Country specialization**: Bonus when producing the country's specialized item (`strategicBonus`)
-- **Regional deposits**: Bonus from resource deposits in the company's region (`depositBonus`)
-- **Party ethics**: Bonus from ruling party's ethics specialization (`ethicSpecializationBonus`, `ethicDepositBonus`)
+### 1. Strategic Resource Bonus
+
+Applies **only** to the country's `specializedItem`. If the country has no specialization, strategic resources give no production bonus.
+
+Calculated per resource type from `country.strategicResources.resources`:
+- 1st region of a resource type: **+5%**
+- 2nd region of same type: **+0.5%**
+- 3rd+ region of same type: **+0.25%** each
+
+Example: A country with 2 gold regions and 1 diamond region = 5% + 0.5% + 5% = **10.5%**
+
+### 2. Deposit Bonus
+
+If a region has a temporary deposit matching the produced item, it grants **+30%** (always `deposit.bonusPercent`). Deposits rotate every 2–5 days.
+
+### 3. Ethic Specialization Bonus
+
+If the country's `specializedItem` matches the produced item AND the ruling party's ethics boost that item's category:
+
+- **Industrialism 1**: +10% to Ammo & Construction items
+- **Industrialism 2**: +30% to Ammo & Construction items
+- **Agrarianism 1** (industrialism = -1): +10% to coca, grain, livestock, fish
+- **Agrarianism 2** (industrialism = -2): +30% to coca, grain, livestock, fish
+
+**Important:** Agrarianism 2 negates the country's specialization entirely — this suppresses both the strategic bonus and the ethic specialization bonus.
+
+### 4. Ethic Deposit Bonus
+
+Same as ethic specialization bonus, but triggered by the region's deposit type instead of the country's specialized item. Only applies when the deposit item matches the produced item AND the specialization bonus isn't already covering it (no double-counting).
 
 ### Total Production Bonus
 ```
 Total Bonus = Strategic Bonus + Deposit Bonus + Ethic Specialization Bonus + Ethic Deposit Bonus
 ```
 
-The total is fetched from the WarEra API via `company.getProductionBonus` and used in the PP per Work formula above.
+For existing companies, the total can also be fetched from the WarEra API via `company.getProductionBonus`. The recommendation system calculates it independently from region/country/party data.
 
 ---
 

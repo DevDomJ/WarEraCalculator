@@ -14,6 +14,7 @@ import { CompanyModule } from './modules/company/company.module';
 import { ProductionCalculatorModule } from './modules/production-calculator/production-calculator.module';
 import { ProductionAnalyticsModule } from './modules/production-analytics/production-analytics.module';
 import { MuModule } from './modules/mu/mu.module';
+import { RegionBonusModule } from './modules/region-bonus/region-bonus.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { MuModule } from './modules/mu/mu.module';
     ProductionCalculatorModule,
     ProductionAnalyticsModule,
     MuModule,
+    RegionBonusModule,
   ],
   providers: [PrismaService],
   exports: [PrismaService],

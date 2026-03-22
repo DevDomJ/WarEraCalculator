@@ -26,3 +26,14 @@ export function formatRegion(regionName?: string, countryCode?: string, regionId
   const name = regionName || regionId || ''
   return flag ? `${flag} ${name}` : name
 }
+
+/** Format a deposit expiry date as a human-readable time remaining string */
+export function formatTimeRemaining(isoDate: string): string {
+  const diff = new Date(isoDate).getTime() - Date.now()
+  if (diff <= 0) return 'Expired'
+  const hours = Math.floor(diff / 3_600_000)
+  const days = Math.floor(hours / 24)
+  const h = hours % 24
+  if (days > 0) return `${days}d ${h}h`
+  return `${h}h`
+}

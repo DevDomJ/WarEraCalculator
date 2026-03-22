@@ -193,6 +193,18 @@ For the full directory tree, see [docs/PROJECT.md](docs/PROJECT.md#project-struc
 - Production history chart (30 days)
 - Variance analysis
 
+### Phase 9: Company Recommendations ✅
+- Hourly region/country/party data collection (~4 API calls/hour)
+- Production bonus calculation per item per region (strategic, deposit, ethics)
+- Best-region recommendation for all producible non-equipment items
+- Automated Engine profit calculation at configurable level (1–7)
+- Market Overview: recommendation cards with best region, bonus, profit/PP, daily profit
+- Market Overview: top 3 most profitable items highlighted with green border
+- Item Detail: full theoretical company analysis section with profit breakdown
+- Item Detail: top 5 regions table ranked by profit
+- Engine level selector persisted in localStorage, shared across pages
+- Deposit expiry timer display
+
 ## API Documentation
 
 See `docs/warEraApiDocumentation.md` for WarEra API details.

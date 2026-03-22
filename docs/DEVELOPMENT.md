@@ -214,6 +214,8 @@ npx prisma migrate dev --name descriptive_name
 | GET | `/api/analytics/:companyId?days=X` | Analytics summary |
 | GET | `/api/mu/user/:userId` | MU membership and owned MUs for a user |
 | GET | `/api/mu/:muId` | MU detail with enriched member stats |
+| GET | `/api/recommendations?engineLevel=X` | Recommendations for all producible items (default engine level 4) |
+| GET | `/api/recommendations/:itemCode?engineLevel=X` | Detailed recommendation for a single item with top 5 regions |
 
 ---
 

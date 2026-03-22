@@ -214,6 +214,66 @@ export interface UpgradeData {
 
 export type UpgradeResponse = TrpcResponse<UpgradeData>;
 
+// --- region.getAll ---
+
+export interface RegionAllData {
+  _id: string;
+  code: string;
+  name: string;
+  country: string;
+  countryCode: string;
+  development: number;
+  biome: string;
+  climate: string;
+  isCapital: boolean;
+  isLinkedToCapital: boolean;
+  neighbors: string[];
+  strategicResource?: string;
+  deposit?: {
+    type: string;
+    startsAt: string;
+    endsAt: string;
+    bonusPercent: number;
+  };
+}
+
+export type RegionAllResponse = TrpcResponse<RegionAllData[]>;
+
+// --- country.getAllCountries ---
+
+export interface CountryAllData {
+  _id: string;
+  name: string;
+  code: string;
+  specializedItem?: string;
+  rulingParty?: string;
+  strategicResources?: {
+    resources: Record<string, string[]>;
+    bonuses: {
+      productionPercent: number;
+      developmentPercent: number;
+    };
+  };
+}
+
+export type CountryAllResponse = TrpcResponse<CountryAllData[]>;
+
+// --- party.getById (batch) ---
+
+export interface PartyData {
+  _id: string;
+  name: string;
+  country: string;
+  ethics: {
+    militarism: number;
+    isolationism: number;
+    imperialism: number;
+    industrialism: number;
+  };
+}
+
+export type PartyByIdResponse = TrpcBatchResponse<PartyData>;
+
 // --- Helper to extract data from a tRPC batch response ---
 
 /** Extract the inner data from a tRPC batch response (handles both array and single-object formats) */

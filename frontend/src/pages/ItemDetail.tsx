@@ -1,11 +1,15 @@
 import { useQuery } from '@tanstack/react-query'
 import { useParams, useNavigate } from 'react-router-dom'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, BarChart, Bar } from 'recharts'
-import { itemsApi, pricesApi } from '../api/client'
+import { itemsApi, pricesApi, recommendationApi } from '../api/client'
 import { useState, useMemo } from 'react'
-import { formatCurrencyString } from '../utils/format'
+import { formatCurrencyString, countryCodeToFlag, formatBonus, formatTimeRemaining } from '../utils/format'
 import ItemIcon from '../components/ItemIcon'
 import CurrencyValue from '../components/CurrencyValue'
+import ProductionBonusTooltip from '../components/ProductionBonusTooltip'
+import ProfitSection from '../components/ProfitSection'
+import EngineLevelSelector from '../components/EngineLevelSelector'
+import { useEngineLevel } from '../hooks/useEngineLevel'
 
 type TimeInterval = 'day' | 'week' | '2weeks' | 'month'
 
@@ -20,6 +24,7 @@ export default function ItemDetail() {
     lowestSell: true,
     volume: true,
   })
+  const [engineLevel, setEngineLevel] = useEngineLevel()
 
   const days = interval === 'day' ? 1 : interval === 'week' ? 7 : interval === '2weeks' ? 14 : 30
 
@@ -33,6 +38,14 @@ export default function ItemDetail() {
     queryKey: ['priceHistory', code, 365],
     queryFn: () => pricesApi.getHistory(code!, 365),
     enabled: !!code,
+  })
+
+  const isEquipment = item?.category === 'Equipment'
+
+  const { data: recommendation } = useQuery({
+    queryKey: ['recommendation', code, engineLevel],
+    queryFn: () => recommendationApi.getByItem(code!, engineLevel),
+    enabled: !!code && !!item && !isEquipment,
   })
 
   const { priceHistory, canGoBack, canGoForward, dateRange } = useMemo(() => {
@@ -55,17 +68,14 @@ export default function ItemDetail() {
       return date >= startDate && date <= endDate
     })
 
-    // Get oldest data point (find actual oldest regardless of sort order)
     const timestamps = allPriceHistory.map(p => new Date(p.timestamp).getTime())
     const oldestTimestamp = new Date(Math.min(...timestamps))
     oldestTimestamp.setHours(0, 0, 0, 0)
     
-    // Calculate what the next period's start date would be
     const nextStartDate = new Date(startDate)
     nextStartDate.setDate(nextStartDate.getDate() - days)
     nextStartDate.setHours(0, 0, 0, 0)
     
-    // Check if we have data for that period
     const canGoBack = oldestTimestamp <= nextStartDate
     const canGoForward = offset > 0
 
@@ -310,6 +320,98 @@ export default function ItemDetail() {
           </BarChart>
         </ResponsiveContainer>
       </div>
+
+      {/* Theoretical Company Analysis — skip for Equipment */}
+      {!isEquipment && recommendation && (
+        <div className="bg-gray-800 rounded-lg shadow p-6 mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-bold text-white">Theoretical Company Analysis</h3>
+            <EngineLevelSelector value={engineLevel} onChange={setEngineLevel} />
+          </div>
+
+          {/* Best region info */}
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-gray-400">Best Region:</span>
+            <span className="text-white font-semibold">
+              {recommendation.bestRegion.regionName}
+              {recommendation.bestRegion.countryCode && (
+                <> {countryCodeToFlag(recommendation.bestRegion.countryCode)} {recommendation.bestRegion.countryName}</>
+              )}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-gray-400">Production Bonus:</span>
+            <ProductionBonusTooltip bonus={recommendation.bonus}>
+              <span className="text-green-400 font-semibold cursor-help">
+                {formatBonus(recommendation.bonus.total)} ℹ️
+              </span>
+            </ProductionBonusTooltip>
+          </div>
+
+          {recommendation.depositExpiresAt && (
+            <div className="text-yellow-400 text-sm mb-2">
+              ⏱ Deposit bonus active — expires in {formatTimeRemaining(recommendation.depositExpiresAt)}
+            </div>
+          )}
+
+          <ProfitSection
+            title={`Automated Engine Lvl ${engineLevel} Profit`}
+            metrics={recommendation.profitMetrics}
+            outputItemName={item.displayName || item.name}
+            showWage={false}
+          />
+
+          <div className="mt-2 text-sm text-gray-400">
+            Profit/PP: <span className="text-white font-semibold"><CurrencyValue value={recommendation.profitMetrics.profitPerPP} decimals={4} /></span>
+          </div>
+
+          {/* Top regions table */}
+          {recommendation.topRegions && recommendation.topRegions.length > 1 && (
+            <div className="mt-6">
+              <h4 className="text-sm font-semibold text-gray-300 mb-3">Top Regions by Profit</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-700 text-gray-400">
+                      <th className="text-left py-2">#</th>
+                      <th className="text-left py-2">Region</th>
+                      <th className="text-right py-2">Bonus</th>
+                      <th className="text-right py-2">Daily Profit</th>
+                      <th className="text-right py-2">Profit/PP</th>
+                      <th className="text-right py-2">Deposit</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recommendation.topRegions.map((r, i) => (
+                      <tr key={r.regionId} className="border-b border-gray-700">
+                        <td className="py-2 text-gray-400">{i + 1}</td>
+                        <td className="py-2 text-white">
+                          {r.regionName} {r.countryCode && countryCodeToFlag(r.countryCode)}
+                        </td>
+                        <td className="py-2 text-right text-green-400">
+                          <ProductionBonusTooltip bonus={r.bonus}>
+                            <span className="cursor-help">{formatBonus(r.bonus.total)}</span>
+                          </ProductionBonusTooltip>
+                        </td>
+                        <td className={`py-2 text-right font-semibold ${r.profitMetrics.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          <CurrencyValue value={r.profitMetrics.profit} />
+                        </td>
+                        <td className="py-2 text-right text-gray-300">
+                          <CurrencyValue value={r.profitMetrics.profitPerPP} decimals={4} />
+                        </td>
+                        <td className="py-2 text-right text-yellow-400">
+                          {r.depositExpiresAt ? formatTimeRemaining(r.depositExpiresAt) : '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-gray-800 rounded-lg shadow p-6">

@@ -131,8 +131,9 @@ Production structure is documented in PRODUCTION_DEPLOY.md (not in repo).
 
 ## Data Collection
 
-- **Cron jobs** run every 5 minutes to collect market prices and trading orders
+- **Market data cron jobs** run every 5 minutes to collect market prices and trading orders
 - Collection cycle: game config → trading orders (batched) → prices
+- **Region bonus cron job** runs every hour to collect region/country/party data for recommendations (~4 API calls/hour)
 - Production must run continuously to avoid data gaps
 
 ## Key Principles

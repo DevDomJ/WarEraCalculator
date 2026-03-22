@@ -263,3 +263,43 @@ export const analyticsApi = {
   getAnalytics: (companyId: string, days = 30) =>
     api.get<ProductionAnalytics>(`/analytics/${companyId}?days=${days}`).then(res => res.data),
 }
+
+// --- Recommendations ---
+
+export interface RecommendationProfitMetrics extends ProfitMetricsBase {
+  profitPerPP: number
+}
+
+export interface ItemRecommendation {
+  bestRegion: {
+    regionId: string
+    regionName: string
+    countryCode: string
+    countryName: string
+  }
+  bonus: ProductionBonusBreakdown
+  depositExpiresAt?: string
+  profitMetrics: RecommendationProfitMetrics
+  engineLevel: number
+}
+
+export interface TopRegionEntry {
+  regionId: string
+  regionName: string
+  countryCode: string
+  countryName: string
+  bonus: ProductionBonusBreakdown
+  depositExpiresAt?: string
+  profitMetrics: RecommendationProfitMetrics
+}
+
+export interface ItemRecommendationDetail extends ItemRecommendation {
+  topRegions: TopRegionEntry[]
+}
+
+export const recommendationApi = {
+  getAll: (engineLevel = 4) =>
+    api.get<Record<string, ItemRecommendation>>(`/recommendations?engineLevel=${engineLevel}`).then(res => res.data),
+  getByItem: (itemCode: string, engineLevel = 4) =>
+    api.get<ItemRecommendationDetail>(`/recommendations/${itemCode}?engineLevel=${engineLevel}`).then(res => res.data),
+}
