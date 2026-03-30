@@ -23,22 +23,10 @@ X-API-Key: YOUR_API_TOKEN
 
 ## Battle Endpoints
 
-### Get Active Battles
-**Endpoint:** `/battle.getActiveBattles`  
-**Operation ID:** `battle.getActiveBattles`  
-**Description:** Retrieves all currently active battles in the game
-
-**Request Body:**
-```json
-{}
-```
-
----
-
 ### Get Battle by ID
-**Endpoint:** `/battle.getBattleById`  
-**Operation ID:** `battle.getBattleById`  
-**Description:** Retrieves detailed information about a specific battle
+**Endpoint:** `/battle.getById`  
+**Operation ID:** `battle.getById`  
+**Description:** Retrieves detailed information about a specific battle (renamed from `battle.getBattleById`)
 
 **Request Body:**
 ```json
@@ -47,12 +35,89 @@ X-API-Key: YOUR_API_TOKEN
 }
 ```
 
+**Response Fields:**
+```json
+{
+  "_id": "string",
+  "war": "string", // War ID
+  "type": "string",
+  "isActive": true,
+  "roundsToWin": 5,
+  "currentRound": "string", // Current round ID
+  "rounds": ["string"], // Array of round IDs
+  "roundsHistory": [],
+  "attacker": {
+    "country": "string",
+    "wonRoundsCount": 0,
+    "countryOrders": ["string"], // Country IDs with orders
+    "muOrders": ["string"], // MU IDs with orders
+    "damages": 0,
+    "hitCount": 3402,
+    "moneyPer1kDamages": 0.01,
+    "moneyPool": 968.96,
+    "bountyEffectiveAt": "string"
+  },
+  "defender": {
+    "region": "string", // Defended region ID
+    "country": "string",
+    "wonRoundsCount": 0,
+    "countryOrders": ["string"],
+    "muOrders": ["string"],
+    "damages": 0,
+    "hitCount": 2945
+  },
+  "stats": { "hitCount": 0 },
+  "createdAt": "string",
+  "updatedAt": "string"
+}
+```
+
 ---
 
-### Get Battles Paginated
-**Endpoint:** `/battle.getBattlesPaginated`  
-**Operation ID:** `battle.getBattlesPaginated`  
-**Description:** Retrieves a paginated list of battles with optional filtering
+### Get Live Battle Data
+**Endpoint:** `/battle.getLiveBattleData`  
+**Operation ID:** `battle.getLiveBattleData`  
+**Description:** Retrieves real-time battle and round data including damage scores, points, and tick timing
+
+**Request Body:**
+```json
+{
+  "battleId": "string" // Required: The battle ID
+}
+```
+
+**Response:**
+```json
+{
+  "battle": {
+    "isActive": true,
+    "attackerCountryOrders": ["string"],
+    "defenderCountryOrders": ["string"],
+    "roundIds": ["string"],
+    "roundHistory": [],
+    "attackerMoneyPer1kDamages": 0.01,
+    "attackerMoneyPool": 968.96,
+    "attackerBountyEffectiveAt": "string"
+  },
+  "round": {
+    "roundId": "string",
+    "attackerDamages": 3373637,
+    "defenderDamages": 2772078,
+    "isActive": true,
+    "actualTickPoints": 1,
+    "attackerPoints": 5,
+    "defenderPoints": 44,
+    "nextTickAt": "string" // When the next tick/point is awarded
+  }
+}
+```
+
+---
+
+### Get Battles
+**Endpoint:** `/battle.getBattles`  
+**Operation ID:** `battle.getBattles`  
+**Description:** Retrieves a paginated list of battles (renamed from `battle.getBattlesPaginated`)
 
 **Request Body:**
 ```json
@@ -66,35 +131,51 @@ X-API-Key: YOUR_API_TOKEN
 
 ---
 
-## War Endpoints
+## Battle Order Endpoints
 
-### Get War by ID
-**Endpoint:** `/war.getWarById`  
-**Operation ID:** `war.getWarById`  
-**Description:** Retrieves detailed information about a specific war
+### Get Battle Orders by Battle
+**Endpoint:** `/battleOrder.getByBattle`  
+**Operation ID:** `battleOrder.getByBattle`  
+**Description:** Retrieves active battle orders for a specific battle and side. Battle orders are instructions set by countries or military units directing players where to fight.
 
 **Request Body:**
 ```json
 {
-  "warId": "string" // Required: The unique identifier of the war
+  "battleId": "string", // Required: The battle ID
+  "side": "string" // Required: "attacker" or "defender"
 }
 ```
+
+**Response:** Array of battle order objects:
+```json
+[
+  {
+    "_id": "string",
+    "battle": "string", // Battle ID
+    "side": "attacker", // "attacker" or "defender"
+    "sideCountry": "string", // Country ID of the side
+    "user": "string", // User ID who set the order
+    "mu": "string", // Military unit ID (present if MU order)
+    "country": "string", // Country ID (present if country order)
+    "text": "string", // Order description/message
+    "priority": "high", // "high", "medium", or "low"
+    "isActive": true,
+    "createdAt": "string",
+    "updatedAt": "string"
+  }
+]
+```
+
+**Notes:**
+- Orders can be set by either a country or a military unit (one of `mu` or `country` will be present)
+- Priority levels: `high`, `medium`, `low`
+- Battle IDs can be found in action logs (via `setOrder` actions) or country data (`currentBattleOrder`)
 
 ---
 
-### Get Wars Paginated
-**Endpoint:** `/war.getWarsPaginated`  
-**Operation ID:** `war.getWarsPaginated`  
-**Description:** Retrieves a paginated list of wars with optional filtering
+## War Endpoints (REMOVED)
 
-**Request Body:**
-```json
-{
-  "limit": 10, // Optional: Maximum number of wars to return (1-100, default: 10)
-  "cursor": "string", // Optional: Pagination cursor
-  "countryId": "string" // Optional: Filter by country ID
-}
-```
+War endpoints (`war.getWarById`, `war.getWarsPaginated`) have been removed from the API as of March 2026. War IDs can still be found in battle data (`battle.getById` → `war` field).
 
 ---
 
@@ -129,9 +210,9 @@ X-API-Key: YOUR_API_TOKEN
 ## Region Endpoints
 
 ### Get Region by ID
-**Endpoint:** `/region.getRegionById`  
-**Operation ID:** `region.getRegionById`  
-**Description:** Retrieves detailed information about a specific region
+**Endpoint:** `/region.getById`  
+**Operation ID:** `region.getById`  
+**Description:** Retrieves detailed information about a specific region (renamed from `region.getRegionById`)
 
 **Request Body:**
 ```json
@@ -142,15 +223,44 @@ X-API-Key: YOUR_API_TOKEN
 
 ---
 
-### Get Regions by Country
-**Endpoint:** `/region.getRegionsByCountry`  
-**Operation ID:** `region.getRegionsByCountry`  
-**Description:** Retrieves all regions belonging to a specific country
+### Get All Regions Object
+**Endpoint:** `/region.getRegionsObject`  
+**Operation ID:** `region.getRegionsObject`  
+**Description:** Retrieves all regions as an object keyed by region ID. Returns all 726+ regions in a single call. Replaces `region.getRegionsByCountry` (use client-side filtering by `country` field instead).
 
 **Request Body:**
 ```json
+{}
+```
+
+**Response:** Object keyed by region ID:
+```json
 {
-  "countryId": "string" // Required: The unique identifier of the country
+  "6813b7039403bc4170a5d68a": {
+    "_id": "string",
+    "code": "ch-zurich",
+    "name": "Switzerland",
+    "mainCity": "Zurich",
+    "country": "string", // Current owner country ID
+    "initialCountry": "string", // Original owner country ID
+    "countryCode": "ch",
+    "isCapital": false,
+    "isLinkedToCapital": true,
+    "neighbors": ["string"], // Adjacent region IDs
+    "development": 4.74,
+    "baseDevelopment": 4.74,
+    "biome": "string",
+    "climate": "string",
+    "position": {},
+    "resistance": 0,
+    "resistanceMax": 0,
+    "strategicResource": "string", // If present
+    "deposit": "string", // If present (only in getById)
+    "activeUpgradeLevels": {},
+    "upgradesV2": { "upgrades": {}, "activeConstructionCount": 0 },
+    "stats": { "investedMoney": 0 },
+    "dates": { "lastOwnershipChangeAt": "string" }
+  }
 }
 ```
 
@@ -471,6 +581,102 @@ X-API-Key: YOUR_API_TOKEN
 ---
 
 ## User Endpoints
+
+### Get User by ID
+**Endpoint:** `/user.getUserById`  
+**Operation ID:** `user.getUserById`  
+**Description:** Retrieves comprehensive public user information including activity dates, leveling, skills (with equipment/weapon bonuses), stats, equipment, rankings, and more. Returns significantly more data than `getUserLite`.
+
+**Request Body:**
+```json
+{
+  "userId": "string" // Required: The unique identifier of the user
+}
+```
+
+**Response Fields:**
+```json
+{
+  "_id": "string",
+  "username": "string",
+  "country": "string", // Country ID
+  "party": "string", // Party ID
+  "mu": "string", // Military unit ID
+  "company": "string", // Company ID
+  "isActive": true,
+  "emailVerified": true,
+  "militaryRank": 26,
+  "createdAt": "string",
+  "dates": {
+    "lastConnectionAt": "string",
+    "lastWorkAt": "string",
+    "lastDailyRewardClaimedAt": "string",
+    "lastWorkOfferApplications": ["string"],
+    "lastCompanyJoinedAt": "string"
+    // ... more date fields
+  },
+  "leveling": {
+    "level": 9,
+    "totalXp": 2090,
+    "dailyXpLeft": 100,
+    "availableSkillPoints": 0,
+    "spentSkillPoints": 36,
+    "totalSkillPoints": 36,
+    "freeReset": 4
+  },
+  "skills": {
+    // Each skill has: level, value, weapon, equipment, limited, total, currentBarValue, hourlyBarRegen, totalAfterSoftCap, overflow
+    "energy": { "level": 2, "value": 50, "total": 50, "currentBarValue": 50, "hourlyBarRegen": 5 },
+    "health": { "level": 3, "value": 130, "total": 130 },
+    "hunger": { "level": 0, "value": 4, "total": 4 },
+    "attack": { "level": 3, "value": 175, "weapon": 28, "total": 219, "ammoPercent": 0, "buffsPercent": 0, "militaryRankPercent": 7.75 },
+    "companies": { "level": 0, "value": 2, "total": 2 },
+    "entrepreneurship": { "level": 2, "value": 40, "total": 40 },
+    "production": { "level": 2, "value": 16, "total": 16 },
+    "criticalChance": { "level": 3, "value": 25, "weapon": 3, "total": 28 },
+    "criticalDamages": { "level": 0, "value": 100, "total": 100 },
+    "armor": { "level": 0, "total": 0 },
+    "precision": { "level": 2, "value": 60, "total": 60 },
+    "dodge": { "level": 0, "equipment": 10, "total": 10, "totalAfterSoftCap": 20 },
+    "lootChance": { "level": 3, "value": 8, "total": 8 },
+    "management": { "level": 0, "value": 4, "total": 4 }
+  },
+  "equipment": {
+    "weapon": "string", // Item ID (or null)
+    "boots": "string" // Item ID (or null)
+    // Other equipment slots possible
+  },
+  "stats": {
+    "worksCount": 354,
+    "damagesCount": 89905,
+    "estimatedWealth": 896.935,
+    "wealth": {
+      "companies": 238.328,
+      "items": 680.105,
+      "money": 311.044,
+      "equipments": 4.202,
+      "weapons": 24.879,
+      "total": 1258.558
+    },
+    "case1": { "openedCount": 8, "byRarity": { "common": 6, "uncommon": 2 } },
+    "case2": { "openedCount": 2, "byRarity": { "uncommon": 1, "rare": 1 } }
+  },
+  "rankings": {
+    "userDamages": { "value": 89905, "rank": 6964, "tier": "bronze" },
+    "userWealth": { "value": 1258.558, "rank": 7476, "tier": "bronze" },
+    "userLevel": { "value": 2090, "rank": 8590, "tier": "bronze" }
+    // ... more ranking types
+  },
+  "missions": { "rerolledDailyMissions": 0, "rerolledWeeklyMissions": 0 }
+}
+```
+
+**Notes:**
+- Much more detailed than `getUserLite` — includes activity timestamps, full skill breakdowns with equipment bonuses, wealth breakdown, case opening stats
+- Skills show weapon/equipment contributions separately from base value
+- `totalAfterSoftCap` appears when soft cap mechanics apply (e.g., dodge)
+
+---
 
 ### Get User Profile (Lite)
 **Endpoint:** `/user.getUserLite`  
@@ -813,6 +1019,115 @@ X-API-Key: YOUR_API_TOKEN
   "total": 61
 }
 ```
+
+---
+
+## Inventory Endpoints
+
+### Get Current Equipment
+**Endpoint:** `/inventory.fetchCurrentEquipment`  
+**Operation ID:** `inventory.fetchCurrentEquipment`  
+**Description:** Retrieves a user's currently equipped items with full item details including stats, durability, and acquisition date.
+
+**Request Body:**
+```json
+{
+  "userId": "string" // Required: The user ID to get equipment for
+}
+```
+
+**Response:**
+```json
+{
+  "weapon": {
+    "_id": "string",
+    "code": "knife", // Item code (e.g., "knife", "pistol")
+    "skills": {
+      "attack": 28,
+      "criticalChance": 3
+    },
+    "state": 74, // Current durability
+    "maxState": 100, // Maximum durability
+    "quantity": 1,
+    "lastAcquisitionAt": "string",
+    "isEquipStatsMigrated": true
+  },
+  "boots": {
+    "_id": "string",
+    "type": "equipment",
+    "code": "boots2", // Item code
+    "skills": {
+      "dodge": 10
+    },
+    "state": 94,
+    "maxState": 100,
+    "quantity": 1,
+    "lastAcquisitionAt": "string"
+  }
+}
+```
+
+**Notes:**
+- Response keys correspond to equipment slots (weapon, boots, etc.)
+- Slots without equipped items are omitted from the response
+- `state` / `maxState` represent item durability (items degrade with use)
+- `skills` shows the stat bonuses the item provides
+- `code` matches the item codes used elsewhere in the API
+
+---
+
+## Action Log Endpoints
+
+### Get Paginated Action Logs
+**Endpoint:** `/actionLog.getPaginated`  
+**Operation ID:** `actionLog.getPaginated`  
+**Description:** Retrieves a paginated feed of game action logs. Can be filtered by user. Covers mission claims, battle orders, username changes, citizenship changes, and more.
+
+**Request Body:**
+```json
+{
+  "limit": 10, // Optional: Maximum entries to return (default varies)
+  "cursor": "string", // Optional: Pagination cursor (from nextCursor in response)
+  "userId": "string" // Optional: Filter by user ID
+}
+```
+
+**Response:**
+```json
+{
+  "items": [
+    {
+      "_id": "string",
+      "user": "string", // User ID who performed the action
+      "data": {
+        "action": "string", // Action type (see below)
+        // ... action-specific fields
+      },
+      "createdAt": "string",
+      "updatedAt": "string"
+    }
+  ],
+  "nextCursor": "string" // Use as cursor for next page
+}
+```
+
+**Known Action Types and their data fields:**
+
+| Action | Description | Extra Fields |
+|---|---|---|
+| `claimMissionXp` | Player claimed XP from a mission | `missionType`, `missionTimeType` (daily/weekly), `xpReward` |
+| `claimFinishedMissionXp` | Player completed all missions for a period | `missionTimeType`, `missionsFinishedCount`, `xpReward`, `moneyReward`, `casesReward` |
+| `setOrder` | Battle order was set | `countrySide`, `battleId`, `muId`, `priority` |
+| `changedUsername` | Player changed their username | `old`, `new` |
+| `changedCitizenship` | Player changed citizenship | `fromCountryId`, `toCountryId`, `reason` |
+
+**Mission Types (for `claimMissionXp`):**
+`participateInBattle`, `openCases`, `eat`, `eatSteak`, `blockDamage`, `sellItems`, and more.
+
+**Notes:**
+- Without `userId` filter, returns a global feed of all players' actions
+- The `nextCursor` field is a composite string (timestamp + ID) used for pagination
+- `setOrder` actions contain `battleId` which can be used with `battleOrder.getByBattle`
 
 ---
 
