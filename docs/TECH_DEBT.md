@@ -15,6 +15,15 @@ Known issues and improvements to address when time permits.
 
 ---
 
+### TD-006: Duplicate type definitions between frontend and backend (battle-simulator)
+
+**Scope:** `backend/src/modules/battle-simulator/battle-simulator.types.ts` and `frontend/src/api/battleSimClient.ts`  
+**Severity:** Low  
+**Example:** ~250 lines of shared types (SimulationResult, DamageStats, CostStats, BuildInput, etc.) are duplicated across both files. This is consistent with the existing pattern in the project (all modules have separate frontend/backend types), but the battle-simulator module has significantly more shared types than others.  
+**Recommendation:** Consider a shared types package or auto-generation if the project grows further. For now, the backend types file is the source of truth — keep frontend types in sync manually.
+
+---
+
 ## Resolved
 
 ### ~~TD-001: No input validation on query parameters~~ ✅ Resolved 2026-02-28

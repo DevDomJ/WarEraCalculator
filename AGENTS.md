@@ -121,7 +121,7 @@ backend/
 ├── dist/              # Built code (deploy this)
 ├── src/               # Source code
 │   ├── config/        # Static configuration (categories, display names)
-│   └── modules/       # NestJS feature modules (11 modules)
+│   └── modules/       # NestJS feature modules (12 modules)
 ├── prisma/
 │   ├── dev.db        # Dev database (has gaps when dev is offline)
 │   └── schema.prisma # Database schema

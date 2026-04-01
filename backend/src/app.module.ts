@@ -15,6 +15,7 @@ import { ProductionCalculatorModule } from './modules/production-calculator/prod
 import { ProductionAnalyticsModule } from './modules/production-analytics/production-analytics.module';
 import { MuModule } from './modules/mu/mu.module';
 import { RegionBonusModule } from './modules/region-bonus/region-bonus.module';
+import { BattleSimulatorModule } from './modules/battle-simulator/battle-simulator.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { RegionBonusModule } from './modules/region-bonus/region-bonus.module';
     ProductionAnalyticsModule,
     MuModule,
     RegionBonusModule,
+    BattleSimulatorModule,
   ],
   providers: [PrismaService],
   exports: [PrismaService],

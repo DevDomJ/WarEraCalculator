@@ -6,6 +6,7 @@ import CompanyDetail from './pages/CompanyDetail'
 import WorkerDetail from './pages/WorkerDetail'
 import MuList from './pages/MuList'
 import MuDetail from './pages/MuDetail'
+import BattleSimulator from './pages/BattleSimulator'
 
 const USEFUL_LINKS: { name: string; url: string }[] = [
   { name: 'WarEra Simulator', url: 'https://war-era.vercel.app' },
@@ -27,6 +28,7 @@ function App() {
               <Link to="/" className="text-blue-400 hover:text-blue-300">Market</Link>
               <Link to="/companies" className="text-blue-400 hover:text-blue-300">Companies</Link>
               <Link to="/mu" className="text-blue-400 hover:text-blue-300">MU</Link>
+              <Link to="/battle-simulator" className="text-blue-400 hover:text-blue-300">Battle Sim</Link>
             </nav>
           </div>
         </div>
@@ -40,6 +42,7 @@ function App() {
           <Route path="/company/:companyId/worker/:workerId" element={<WorkerDetail />} />
           <Route path="/mu" element={<MuList />} />
           <Route path="/mu/:muId" element={<MuDetail />} />
+          <Route path="/battle-simulator" element={<BattleSimulator />} />
         </Routes>
       </main>
       <footer className="bg-gray-800 border-t border-gray-700 mt-12 py-6 px-4">

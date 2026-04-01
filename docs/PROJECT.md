@@ -133,7 +133,9 @@ WarEraCalculator/
 │   │   │   ├── company/              # Company management, workers & production bonus
 │   │   │   ├── production-calculator/# Production metrics & profit
 │   │   │   ├── production-analytics/ # Production tracking & history
-│   │   │   └── mu/                   # Military unit management
+│   │   │   ├── mu/                   # Military unit management
+│   │   │   ├── region-bonus/         # Region bonus data collection & recommendations
+│   │   │   └── battle-simulator/     # Battle build optimizer & combat simulation
 │   │   ├── app.module.ts
 │   │   ├── main.ts
 │   │   └── prisma.service.ts
@@ -151,7 +153,8 @@ WarEraCalculator/
     │   │   ├── CompanyDetail.tsx      # Company detail with metrics & profit
     │   │   ├── WorkerDetail.tsx       # Worker detail with production chart
     │   │   ├── MuList.tsx             # Military unit list (membership + owned)
-    │   │   └── MuDetail.tsx           # MU detail with members & stats
+    │   │   ├── MuDetail.tsx           # MU detail with members & stats
+    │   │   └── BattleSimulator.tsx    # Battle build optimizer & simulator
     │   ├── components/
     │   │   ├── ProductionTracker.tsx          # Daily production input
     │   │   ├── ProductionHistoryChart.tsx     # Production history chart
@@ -162,7 +165,14 @@ WarEraCalculator/
     │   │   ├── InfoTooltip.tsx                # Reusable info tooltip
     │   │   ├── ItemIcon.tsx                   # Reusable item icon
     │   │   ├── CoinIcon.tsx                   # In-game currency coin SVG icon
-    │   │   └── CurrencyValue.tsx              # Formatted currency value with coin icon
+    │   │   ├── CurrencyValue.tsx              # Formatted currency value with coin icon
+    │   │   └── battle-sim/                    # Battle simulator components
+    │   │       ├── EquipmentSetup.tsx          # Visual equipment layout with modal selection
+    │   │       ├── SkillAllocator.tsx          # Skill point allocation with segmented bars
+    │   │       ├── BonusPanel.tsx              # Battle bonus slider with reference values
+    │   │       ├── BuildManager.tsx            # Save/load/rename/delete builds (localStorage)
+    │   │       ├── CombatLogPanel.tsx          # 4 stat cards + scrollable combat log
+    │   │       └── BuildComparison.tsx         # Side-by-side build comparison table
     │   ├── utils/
     │   │   └── format.ts             # Formatting utilities
     │   ├── App.tsx
@@ -198,6 +208,9 @@ This table tracks all planned features and their implementation status.
 | F-18 | Ethics system integration | ✅ Implemented | Handled server-side by WarEra API (included in production bonus) |
 | F-19 | Military unit (MU) management | ✅ Implemented | MU membership, owned MUs, member stats, donations, inactive detection |
 | F-20 | Profit simulator | ✅ Implemented | Per-unit what-if calculator with editable wage/price, max profitable wage |
+| F-21 | Battle build optimizer | ✅ Implemented | Skill allocation, equipment setup, auto-optimizer, build save/load |
+| F-22 | Battle simulator | ✅ Implemented | Burst/8h/24h combat simulation with full mechanics, stat cards, combat log |
+| F-23 | Build comparison | ✅ Implemented | Side-by-side comparison table with diff column for 2 builds |
 
 > **For detailed feature documentation including requirements and design decisions, see [FEATURES.md](./FEATURES.md).**
 

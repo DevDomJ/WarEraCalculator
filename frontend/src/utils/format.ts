@@ -37,3 +37,15 @@ export function formatTimeRemaining(isoDate: string): string {
   if (days > 0) return `${days}d ${h}h`
   return `${h}h`
 }
+
+/** Format a large number with K/M suffix */
+export function formatCompact(n: number): string {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + 'M'
+  if (n >= 1_000) return (n / 1_000).toFixed(2) + 'K'
+  return n.toLocaleString()
+}
+
+/** Format a gold value to 3 decimal places */
+export function formatGold(n: number): string {
+  return n.toFixed(3)
+}

@@ -119,8 +119,8 @@ npm run start:prod
 
 ```
 WarEraApplication/
-├── backend/           # NestJS backend (11 modules)
-│   ├── src/modules/   # Feature modules (API, data collection, companies, production, MU)
+├── backend/           # NestJS backend (12 modules)
+│   ├── src/modules/   # Feature modules (API, data collection, companies, production, MU, battle-sim)
 │   ├── src/config/    # Static config (categories, display names)
 │   └── prisma/        # Database schema & migrations
 ├── frontend/          # React + Vite frontend
@@ -204,6 +204,19 @@ For the full directory tree, see [docs/PROJECT.md](docs/PROJECT.md#project-struc
 - Item Detail: top 5 regions table ranked by profit
 - Engine level selector persisted in localStorage, shared across pages
 - Deposit expiry timer display
+
+### Phase 10: Battle Build Optimizer & Simulator ✅
+- Build Optimizer: skill point allocation with +/- buttons, segmented progress bars, auto-optimizer ("Optimize for War")
+- Equipment Setup: visual layout matching in-game UI, modal-based item selection with stat ranges and scrap values
+- Quick Set Rarity: one-click to set all equipment slots to a specific rarity
+- Consumables: ammo (None/Light/Normal/Heavy), pill (toggle), food (Bread/Steak/Fish) with modal selection
+- Battle Simulator: burst/8h/24h simulation with full combat mechanics (precision, crit, dodge, armor, overflow, hunger/food, HP regen, equipment durability/destruction, loot drops)
+- Simulation output: 4 stat cards (Damage, Costs, Revenue, Net Profit) + scrollable hit-by-hit combat log
+- Build Manager: save/load/rename/delete builds in localStorage
+- Build Comparison: side-by-side comparison table with diff column for 2 builds
+- Battle Bonus: simplified slider (−100% to +100%) with reference values from gameConfig
+- Seeded RNG for reproducible simulations
+- Backend: new `battle-simulator` module with 3 endpoints (user-skills, simulate, compare)
 
 ## API Documentation
 
