@@ -15,6 +15,7 @@ const USEFUL_LINKS: { name: string; url: string }[] = [
   { name: 'Factory Optimizer', url: 'https://3dcut.github.io/warera-company-calc/' },
   { name: 'WarEra', url: 'https://app.warera.io/world' },
   { name: 'WarEra Dev', url: 'https://dev.warera.io' },
+  { name: 'Staatsradio', url: 'https://laut.fm/war-era-de' },
 ]
 
 function App() {
