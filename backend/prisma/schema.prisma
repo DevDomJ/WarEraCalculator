@@ -62,6 +62,7 @@ model Company {
   maxProduction   Float    @default(200)
   energyConsumption Float
   automatedEngineLevel Int @default(0)
+  disabledAt      DateTime?
   displayOrder    Int      @default(0)
   lastFetched     DateTime?
   createdAt       DateTime @default(now())

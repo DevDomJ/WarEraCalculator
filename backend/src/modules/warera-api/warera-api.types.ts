@@ -75,6 +75,7 @@ export interface CompanyRaw {
   energyConsumption: number;
   user: string;
   activeUpgradeLevels?: Record<string, number>;
+  disabledAt?: string;
 }
 
 export type CompanyByIdResponse = TrpcResponse<CompanyRaw>;

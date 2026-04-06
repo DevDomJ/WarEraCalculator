@@ -79,6 +79,7 @@ export interface CompanyData {
   workers?: WorkerData[];
   lastFetched?: Date;
   totalDailyWage?: number;
+  disabledAt?: Date | null;
   productionBonus?: ProductionBonusBreakdown;
   dailyProfitMetrics?: DailyProfitMetrics;
   workerProfitMetrics?: WorkerProfitMetrics;
@@ -543,6 +544,7 @@ export class CompanyService {
             automatedEngineLevel: company.activeUpgradeLevels?.automatedEngine || 0,
             workers: workersWithProduction,
             lastFetched: new Date(),
+            disabledAt: company.disabledAt ? new Date(company.disabledAt) : null,
             productionBonus,
           };
 
@@ -559,6 +561,7 @@ export class CompanyService {
               maxProduction: companyDataObj.maxProduction,
               energyConsumption: companyDataObj.energyConsumption,
               automatedEngineLevel: companyDataObj.automatedEngineLevel,
+              disabledAt: companyDataObj.disabledAt,
               lastFetched: companyDataObj.lastFetched,
             },
             create: {
@@ -573,6 +576,7 @@ export class CompanyService {
               maxProduction: companyDataObj.maxProduction,
               energyConsumption: companyDataObj.energyConsumption,
               automatedEngineLevel: companyDataObj.automatedEngineLevel,
+              disabledAt: companyDataObj.disabledAt,
               lastFetched: companyDataObj.lastFetched,
             },
           });
@@ -748,11 +752,13 @@ export class CompanyService {
     
     const companies = await Promise.all(dbCompanies.map(company => this.enrichCompanyWithMetrics(company)));
 
+    const activeCompanies = companies.filter(c => !c.disabledAt);
+
     const summary: CompaniesSummary = {
-      totalDailyRevenue: companies.reduce((sum, c) => sum + (c.dailyProfitMetrics?.dailyRevenue || 0), 0),
-      totalDailyWage: companies.reduce((sum, c) => sum + (c.totalDailyWage || 0), 0),
-      totalDailyInputCost: companies.reduce((sum, c) => sum + (c.dailyProfitMetrics?.dailyInputCost || 0), 0),
-      totalDailyProfit: companies.reduce((sum, c) => sum + (c.dailyProfitMetrics?.profit || 0), 0),
+      totalDailyRevenue: activeCompanies.reduce((sum, c) => sum + (c.dailyProfitMetrics?.dailyRevenue || 0), 0),
+      totalDailyWage: activeCompanies.reduce((sum, c) => sum + (c.totalDailyWage || 0), 0),
+      totalDailyInputCost: activeCompanies.reduce((sum, c) => sum + (c.dailyProfitMetrics?.dailyInputCost || 0), 0),
+      totalDailyProfit: activeCompanies.reduce((sum, c) => sum + (c.dailyProfitMetrics?.profit || 0), 0),
     };
 
     return { companies, summary };

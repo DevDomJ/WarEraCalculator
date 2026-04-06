@@ -122,6 +122,7 @@ export interface Company {
   maxProduction: number
   energyConsumption: number
   automatedEngineLevel?: number
+  disabledAt?: string | null
   lastFetched?: string
   workers?: Worker[]
   totalDailyWage?: number

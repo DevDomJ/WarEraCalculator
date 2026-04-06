@@ -31,12 +31,13 @@ function SortableCompanyCard({ company }: { company: Company }) {
   const minWage = wages.length > 0 ? Math.min(...wages) : 0
   const maxWage = wages.length > 0 ? Math.max(...wages) : 0
   const allSameWage = minWage === maxWage
+  const isDisabled = !!company.disabledAt
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow flex gap-3"
+      className={`bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow flex gap-3 ${isDisabled ? 'opacity-40' : ''}`}
     >
       <div
         className="flex items-center cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300"
@@ -52,7 +53,10 @@ function SortableCompanyCard({ company }: { company: Company }) {
           <div className="flex items-center gap-3">
             <ItemIcon code={company.type} size="md" />
             <div>
-              <h3 className="text-xl font-bold text-white">{company.name}</h3>
+              <h3 className="text-xl font-bold text-white">
+                {company.name}
+                {isDisabled && <span className="ml-2 text-xs text-red-400 font-semibold">Disabled</span>}
+              </h3>
               <p className="text-gray-400">{company.type} • {formatRegion(company.regionName, company.countryCode, company.region)}</p>
             </div>
           </div>
