@@ -165,7 +165,10 @@ WarEraCalculator/
     │   │   ├── InfoTooltip.tsx                # Reusable info tooltip
     │   │   ├── ItemIcon.tsx                   # Reusable item icon
     │   │   ├── CoinIcon.tsx                   # In-game currency coin SVG icon
+    │   │   ├── SkillIcon.tsx                  # In-game skill/stat SVG icons (14 icons with colors)
     │   │   ├── CurrencyValue.tsx              # Formatted currency value with coin icon
+    │   │   ├── EngineLevelSelector.tsx        # Engine level selector (persisted in localStorage)
+    │   │   ├── RadioPlayer.tsx                # Embedded Staatsradio laut.fm audio player
     │   │   └── battle-sim/                    # Battle simulator components
     │   │       ├── EquipmentSetup.tsx          # Visual equipment layout with modal selection
     │   │       ├── SkillAllocator.tsx          # Skill point allocation with segmented bars
@@ -174,7 +177,9 @@ WarEraCalculator/
     │   │       ├── CombatLogPanel.tsx          # 4 stat cards + scrollable combat log
     │   │       └── BuildComparison.tsx         # Side-by-side build comparison table
     │   ├── utils/
-    │   │   └── format.ts             # Formatting utilities
+    │   │   ├── format.ts             # Formatting utilities
+    │   │   ├── buildStorage.ts       # Battle build localStorage persistence
+    │   │   └── iconStyles.ts         # Shared inline SVG icon styles
     │   ├── App.tsx
     │   └── main.tsx
     └── package.json
