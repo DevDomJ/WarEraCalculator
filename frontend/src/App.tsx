@@ -7,6 +7,7 @@ import WorkerDetail from './pages/WorkerDetail'
 import MuList from './pages/MuList'
 import MuDetail from './pages/MuDetail'
 import BattleSimulator from './pages/BattleSimulator'
+import RadioPlayer from './components/RadioPlayer'
 
 const USEFUL_LINKS: { name: string; url: string }[] = [
   { name: 'WarEra Simulator', url: 'https://war-era.vercel.app' },
@@ -48,6 +49,9 @@ function App() {
       </main>
       <footer className="bg-gray-800 border-t border-gray-700 mt-12 py-6 px-4">
         <div className="max-w-7xl mx-auto">
+          <div className="mb-4">
+            <RadioPlayer />
+          </div>
           <h3 className="text-sm font-semibold text-gray-400 mb-3">Useful Links</h3>
           <div className="flex flex-wrap gap-x-6 gap-y-2">
             {USEFUL_LINKS.map(({ name, url }) => (
