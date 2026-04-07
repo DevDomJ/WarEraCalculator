@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { EquipmentSlotInput, UserSkillsResponse, UserLeveling, SkillConfig } from '../../api/battleSimClient'
+import SkillIcon from '../SkillIcon'
 
 const COMBAT_SKILLS = ['attack', 'precision', 'criticalChance', 'criticalDamages', 'armor', 'dodge', 'health', 'lootChance', 'hunger'] as const
 const OTHER_SKILLS = ['entrepreneurship', 'energy', 'production', 'companies', 'management'] as const
@@ -10,12 +11,6 @@ const SKILL_LABELS: Record<string, string> = {
   armor: 'Armor', dodge: 'Dodge', lootChance: 'Loot chance',
   energy: 'Energy', companies: 'Companies limit', entrepreneurship: 'Entrepreneurship',
   production: 'Production', management: 'Management',
-}
-
-const SKILL_ICONS: Record<string, string> = {
-  attack: '🔧', precision: '🎯', criticalChance: '🔥', criticalDamages: '💥',
-  armor: '🛡️', dodge: '🏃', health: '💚', lootChance: '📦', hunger: '🍖',
-  energy: '⚡', companies: '🏭', entrepreneurship: '🎀', production: '⛏️', management: '👥',
 }
 
 /** Combat skills use blue, economic skills use orange */
@@ -188,7 +183,7 @@ function SkillRow({ name, level, effectiveValue, config, playerLevel, remaining,
       <span className="text-lg font-bold text-white w-12 text-right">{effectiveValue}</span>
 
       {/* Icon */}
-      <span className="text-lg w-6 text-center">{SKILL_ICONS[name] ?? '•'}</span>
+      <span className="text-lg w-6 text-center"><SkillIcon name={name} /></span>
 
       {/* Name + bar */}
       <div className="flex-1 min-w-0">

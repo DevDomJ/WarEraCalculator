@@ -1,5 +1,7 @@
 import { SimulationResult, SimulationEvent, HitLogEntry } from '../../api/battleSimClient'
 import { formatCompact, formatGold } from '../../utils/format'
+import SkillIcon from '../SkillIcon'
+import CoinIcon from '../CoinIcon'
 
 interface Props {
   result: SimulationResult | null
@@ -89,8 +91,8 @@ function CostsCard({ costs }: { costs: SimulationResult['costs'] }) {
       </div>
       <div className="space-y-1.5 text-sm">
         <CostRow icon="🗡️" label={`Weapon (${costs.weaponsUsed}x)`} value={costs.weaponCost} />
-        <CostRow icon="🛡️" label={`Armor (${costs.armorSetsUsed}x)`} value={costs.armorCost} />
-        <CostRow icon="💥" label={`Ammo (${costs.ammoUsed})`} value={costs.ammoCost} />
+        <CostRow icon={<SkillIcon name="armor" size="sm" />} label={`Armor (${costs.armorSetsUsed}x)`} value={costs.armorCost} />
+        <CostRow icon={<SkillIcon name="criticalDamages" size="sm" />} label={`Ammo (${costs.ammoUsed})`} value={costs.ammoCost} />
         <CostRow icon="🍞" label={`Food (${costs.foodUsed})`} value={costs.foodCost} />
         <CostRow icon="💊" label="Booster" value={costs.boosterCost} />
         <div className="border-t border-gray-700 pt-1 mt-1">
@@ -126,7 +128,7 @@ function RevenueCard({ revenue }: { revenue: SimulationResult['revenue'] }) {
       </div>
       <div className="space-y-1.5 text-sm">
         <div className="flex justify-between">
-          <span className="text-gray-300">🏆 Bounty</span>
+          <span className="text-gray-300"><CoinIcon /> Bounty</span>
           <span className="text-white">{formatGold(revenue.bounty)}</span>
         </div>
         <div className="flex justify-between">
@@ -182,8 +184,8 @@ function NetProfitCard({ netProfit }: { netProfit: SimulationResult['netProfit']
           <span className="text-red-400">-{formatGold(netProfit.costs)}</span>
         </div>
         <div className="border-t border-gray-700 pt-1 flex justify-between text-xs text-gray-500">
-          <span>🎯 {netProfit.hitRate}%</span>
-          <span>🛡️ {netProfit.dodgeRate}%</span>
+          <span><SkillIcon name="precision" size="sm" /> {netProfit.hitRate}%</span>
+          <span><SkillIcon name="dodge" size="sm" /> {netProfit.dodgeRate}%</span>
         </div>
       </div>
     </div>
@@ -196,7 +198,7 @@ function StatBar({ label, count, percent, color, barColor }: {
   return (
     <div>
       <div className="flex justify-between">
-        <span className={color}>{label === 'Crit' ? '⚡' : label === 'Miss' ? '✕' : '🛡️'} {label}</span>
+        <span className={color}>{label === 'Crit' ? <SkillIcon name="criticalChance" size="sm" /> : label === 'Miss' ? '✕' : <SkillIcon name="dodge" size="sm" />} {label}</span>
         <span className="text-white">{count} ({percent}%)</span>
       </div>
       <div className="h-1 bg-gray-700 rounded mt-0.5">
@@ -206,7 +208,7 @@ function StatBar({ label, count, percent, color, barColor }: {
   )
 }
 
-function CostRow({ icon, label, value }: { icon: string; label: string; value: number }) {
+function CostRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
   return (
     <div className="flex justify-between">
       <span className="text-gray-300">{icon} {label}</span>

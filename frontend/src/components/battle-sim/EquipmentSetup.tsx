@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { EquipmentSlotInput, ConsumablesInput, GameItemConfig, UserSkillsResponse } from '../../api/battleSimClient'
 import ItemIcon from '../ItemIcon'
+import SkillIcon from '../SkillIcon'
 
 const EQUIPMENT_SLOTS = ['helmet', 'gloves', 'chest', 'weapon', 'pants', 'boots'] as const
 const RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic'] as const
@@ -104,8 +105,8 @@ export default function EquipmentSetup({ equipment, consumables, onEquipmentChan
     <div>
       {/* Stat summary */}
       <div className="flex items-center gap-4 mb-4 text-sm bg-gray-900 rounded px-3 py-2">
-        <span className="text-gray-300">🛡️ {totalStats.armor}</span>
-        <span className="text-gray-300">🔧 {totalStats.attack}</span>
+        <span className="text-gray-300"><SkillIcon name="armor" /> {totalStats.armor}</span>
+        <span className="text-gray-300"><SkillIcon name="attack" /> {totalStats.attack}</span>
         <span className="text-gray-400">💰 —</span>
       </div>
 
@@ -196,24 +197,28 @@ function SlotCard({ slot, equipment, items, onClick }: {
   const rarity = item?.rarity ?? null
   const borderClass = rarity ? RARITY_COLORS[rarity] : 'border-gray-600 text-gray-500'
 
+  const hasStats = eq?.stats && Object.keys(eq.stats).length > 0
+
   return (
-    <div className="text-center cursor-pointer" onClick={onClick}>
-      <div className={`w-20 h-20 rounded-lg border-2 flex items-center justify-center bg-gray-900 hover:opacity-80 ${borderClass}`}>
+    <div className="group text-center cursor-pointer" onClick={onClick}>
+      <div className={`w-20 h-20 rounded-lg border-2 flex flex-col items-center justify-center overflow-hidden bg-gray-900 hover:opacity-80 ${borderClass}`}>
         {eq?.code ? <ItemIcon code={eq.code} size="md" /> : <span className="text-gray-600 text-xs capitalize">{slot}</span>}
+        {hasStats && (
+          <div className="text-[10px] leading-tight mt-1 hidden group-hover:block">
+            {Object.entries(eq.stats).map(([stat, val]) => {
+              const range = item?.dynamicStats?.[stat]
+              return (
+                <div key={stat} className="text-gray-300">
+                  <SkillIcon name={stat} size="sm" /> {range ? `${range[0]}-${range[1]}` : val}
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
       <div className={`text-xs mt-1 truncate w-20 ${rarity ? RARITY_COLORS[rarity].split(' ')[1] : 'text-gray-500'}`}>
         {item ? item.code : slot}
       </div>
-      {/* Show weapon stats below */}
-      {eq?.stats && slot === 'weapon' && Object.keys(eq.stats).length > 0 && (
-        <div className="text-xs space-y-0">
-          {Object.entries(eq.stats).map(([stat, val]) => (
-            <div key={stat} className="text-gray-300">
-              {stat === 'attack' ? '🔧' : '🎯'} {val}
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   )
 }
@@ -271,7 +276,7 @@ function SelectionModal({ slot, equipment, consumables, items, onSelectEquipment
                   <div className="text-xs text-gray-500">({rarity})</div>
                   {Object.entries(stats).map(([stat, [min, max]]) => (
                     <div key={stat} className="text-xs text-gray-300 mt-0.5">
-                      {stat === 'attack' ? '🔧' : stat === 'criticalChance' ? '🎯' : stat === 'armor' ? '🛡️' : stat === 'dodge' ? '🏃' : stat === 'precision' ? '🎯' : stat === 'criticalDamages' ? '💥' : '•'} {min}–{max}
+                      <SkillIcon name={stat} size="sm" /> {min}–{max}
                     </div>
                   ))}
                   <div className="flex justify-center gap-2 mt-1 text-xs text-gray-500">

@@ -3,6 +3,7 @@ import { formatBonus, formatRegion } from '../utils/format'
 import { useParams, useNavigate } from 'react-router-dom'
 import { companyApi, itemsApi, Worker } from '../api/client'
 import ItemIcon from '../components/ItemIcon'
+import SkillIcon from '../components/SkillIcon'
 import CurrencyValue from '../components/CurrencyValue'
 import ProductionBonusTooltip from '../components/ProductionBonusTooltip'
 import ProfitSection from '../components/ProfitSection'
@@ -175,13 +176,11 @@ export default function CompanyDetail() {
                           <div className="flex flex-col gap-1">
                             <span className="font-semibold text-white">{worker.username || `Worker ${index + 1}`}</span>
                             <div className="flex gap-1.5">
-                              <span className="px-2 py-0.5 bg-blue-600/30 text-blue-300 rounded text-xs">
-                                ⚡ {worker.maxEnergy || 70}
+                              <span className="px-2 py-0.5 bg-blue-600/30 text-blue-300 rounded text-xs flex items-center gap-1">
+                                <SkillIcon name="energy" size="sm" /> {worker.maxEnergy || 70}
                               </span>
                               <span className="px-2 py-0.5 bg-[#E1C997]/20 text-[#E1C997] rounded text-xs flex items-center gap-1">
-                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M14.79,10.62L3.5,21.9L2.1,20.5L13.38,9.21L14.79,10.62M19.27,7.73L19.86,7.14L19.07,6.35L19.71,5.71L18.29,4.29L17.65,4.93L16.86,4.14L16.27,4.73C14.53,3.31 12.57,2.17 10.47,1.37L9.64,3.16C11.39,4.08 13,5.19 14.5,6.5L14,7L17,10L17.5,9.5C18.81,11 19.92,12.61 20.84,14.36L22.63,13.53C21.83,11.43 20.69,9.47 19.27,7.73Z"></path>
-                                </svg>
+                                <SkillIcon name="production" size="sm" />
                                 {worker.production || 0}
                               </span>
                               <span className="px-2 py-0.5 bg-purple-600/30 text-purple-300 rounded text-xs">
