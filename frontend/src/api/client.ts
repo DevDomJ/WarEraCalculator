@@ -14,6 +14,19 @@ export interface Item {
   category?: string
 }
 
+export interface DismantleTier {
+  rarity: string
+  scrapCount: number
+  sellValue: number | null
+  buyValue: number | null
+}
+
+export interface DismantleValues {
+  scrapSellPrice: number | null
+  scrapBuyPrice: number | null
+  tiers: DismantleTier[]
+}
+
 export interface PriceHistory {
   id: number
   itemCode: string
@@ -170,6 +183,7 @@ export interface ProductionAnalytics {
 export const itemsApi = {
   getAll: () => api.get<Item[]>('/items').then(res => res.data),
   getByCode: (code: string) => api.get<Item>(`/items/${code}`).then(res => res.data),
+  getDismantleValues: () => api.get<DismantleValues>('/items/dismantle-values').then(res => res.data),
 }
 
 export const pricesApi = {

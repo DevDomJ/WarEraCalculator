@@ -3,6 +3,7 @@ import { GameConfigService } from '../game-config/game-config.service';
 import { PrismaService } from '../../prisma.service';
 import { getItemCategory } from '../../config/item-categories';
 import { getItemDisplayName } from '../../config/item-display-names';
+import { SCRAP_PER_RARITY, RARITIES, DISMANTLE_MULTIPLIER } from '../../config/scrap';
 
 @Controller('items')
 export class ItemsController {
@@ -29,6 +30,35 @@ export class ItemsController {
       })
     );
     return itemsWithPrices;
+  }
+
+  @Get('dismantle-values')
+  async getDismantleValues() {
+    // Get latest scrap sell and buy orders
+    const [lowestSell, highestBuy] = await Promise.all([
+      this.prisma.tradingOrder.findFirst({
+        where: { itemCode: 'scraps', type: 'sell' },
+        orderBy: { price: 'asc' },
+      }),
+      this.prisma.tradingOrder.findFirst({
+        where: { itemCode: 'scraps', type: 'buy' },
+        orderBy: { price: 'desc' },
+      }),
+    ]);
+
+    return {
+      scrapSellPrice: lowestSell?.price ?? null,
+      scrapBuyPrice: highestBuy?.price ?? null,
+      tiers: RARITIES.map(rarity => {
+        const scrapCount = SCRAP_PER_RARITY[rarity] * DISMANTLE_MULTIPLIER;
+        return {
+          rarity,
+          scrapCount,
+          sellValue: lowestSell ? scrapCount * lowestSell.price : null,
+          buyValue: highestBuy ? scrapCount * highestBuy.price : null,
+        };
+      }),
+    };
   }
 
   @Get(':code')

@@ -256,7 +256,7 @@ The application needs to know about all tradeable items in the game — their na
 - Item categories defined in `backend/src/config/item-categories.ts`: Cases, Craft, Buffs, Ammo, Food, Construction, Equipment
 - Item display names mapped in `backend/src/config/item-display-names.ts`
 - Frontend: `GoodsOverview` page displays items organized by category with icons and display names
-- Equipment items shown in a separate toggle view
+- Equipment toggle replaced with Dismantle Calculator showing scrap sell/buy values per rarity tier
 
 ---
 

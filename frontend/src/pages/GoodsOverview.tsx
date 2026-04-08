@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { itemsApi, recommendationApi, ItemRecommendation } from '../api/client'
 import ItemIcon from '../components/ItemIcon'
 import CurrencyValue from '../components/CurrencyValue'
+import DismantleCalculator from '../components/DismantleCalculator'
 import ProductionBonusTooltip from '../components/ProductionBonusTooltip'
 import EngineLevelSelector from '../components/EngineLevelSelector'
 import { useEngineLevel } from '../hooks/useEngineLevel'
@@ -38,43 +39,7 @@ export default function GoodsOverview() {
   if (error) return <div className="text-center py-8 text-red-400">Error loading items</div>
 
   if (showEquipment) {
-    const equipmentItems = items?.filter(item => item.category === 'Equipment')
-
-    return (
-      <div>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-white">Equipment</h2>
-          <button
-            onClick={() => setShowEquipment(false)}
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm text-white"
-          >
-            Show Wares
-          </button>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4">
-          {equipmentItems?.map(item => (
-            <div
-              key={item.code}
-              onClick={() => navigate(`/item/${item.code}`)}
-              className="bg-gray-800 rounded-lg shadow p-4 cursor-pointer hover:shadow-lg hover:bg-gray-750 transition-all"
-            >
-              <div className="flex items-center gap-3">
-                <ItemIcon code={item.code} size="md" />
-                <div className="flex-1">
-                  <h3 className="font-semibold text-white">{item.displayName || item.name}</h3>
-                  <p className="text-sm text-gray-400">{item.code}</p>
-                  {item.currentPrice && (
-                    <p className="text-lg font-bold text-green-400 mt-1">
-                      <CurrencyValue value={item.currentPrice} />
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    )
+    return <DismantleCalculator onBack={() => setShowEquipment(false)} />
   }
 
   const categories = ['Ammo', 'Food', 'Construction']
@@ -184,3 +149,4 @@ function RecommendationInfo({ rec }: { rec: ItemRecommendation }) {
     </div>
   )
 }
+

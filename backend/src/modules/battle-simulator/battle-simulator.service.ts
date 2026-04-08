@@ -6,8 +6,9 @@ import {
   UserByIdData, CurrentEquipmentData, FullGameConfig,
   BuildInput, SimulationRequest, SimulationResult, EffectiveStats,
   HitLogEntry, SimulationEvent, DamageStats, CostStats, RevenueStats, NetProfitStats,
-  SCRAP_PER_RARITY, GameItemConfig,
+  GameItemConfig,
 } from './battle-simulator.types';
+import { SCRAP_PER_RARITY } from '../../config/scrap';
 
 @Injectable()
 export class BattleSimulatorService {

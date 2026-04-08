@@ -2,22 +2,9 @@ import { useState, useMemo } from 'react'
 import { EquipmentSlotInput, ConsumablesInput, GameItemConfig, UserSkillsResponse } from '../../api/battleSimClient'
 import ItemIcon from '../ItemIcon'
 import SkillIcon from '../SkillIcon'
+import { RARITIES, RARITY_BADGE_COLORS, SCRAP_PER_RARITY } from '../../utils/rarity'
 
 const EQUIPMENT_SLOTS = ['helmet', 'gloves', 'chest', 'weapon', 'pants', 'boots'] as const
-const RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic'] as const
-
-const RARITY_COLORS: Record<string, string> = {
-  common: 'border-gray-500 text-gray-400',
-  uncommon: 'border-green-500 text-green-400',
-  rare: 'border-blue-500 text-blue-400',
-  epic: 'border-purple-500 text-purple-400',
-  legendary: 'border-yellow-500 text-yellow-400',
-  mythic: 'border-red-500 text-red-400',
-}
-
-const SCRAP_PER_RARITY: Record<string, number> = {
-  common: 2, uncommon: 6, rare: 18, epic: 54, legendary: 162, mythic: 486,
-}
 
 const AMMO_OPTIONS = [
   { code: 'none', label: 'None (Knife)' },
@@ -116,7 +103,7 @@ export default function EquipmentSetup({ equipment, consumables, onEquipmentChan
         <div className="flex gap-2 mt-1">
           {RARITIES.map(r => (
             <button key={r} onClick={() => quickSetRarity(r)}
-              className={`px-3 py-1 rounded text-sm border ${RARITY_COLORS[r]} border-current hover:opacity-80`}>
+              className={`px-3 py-1 rounded text-sm border ${RARITY_BADGE_COLORS[r]} border-current hover:opacity-80`}>
               {r.charAt(0).toUpperCase() + r.slice(1)}
             </button>
           ))}
@@ -195,7 +182,7 @@ function SlotCard({ slot, equipment, items, onClick }: {
   const eq = equipment[slot]
   const item = eq?.code && items ? items[eq.code] : null
   const rarity = item?.rarity ?? null
-  const borderClass = rarity ? RARITY_COLORS[rarity] : 'border-gray-600 text-gray-500'
+  const borderClass = rarity ? RARITY_BADGE_COLORS[rarity] : 'border-gray-600 text-gray-500'
 
   const hasStats = eq?.stats && Object.keys(eq.stats).length > 0
 
@@ -216,7 +203,7 @@ function SlotCard({ slot, equipment, items, onClick }: {
           </div>
         )}
       </div>
-      <div className={`text-xs mt-1 truncate w-20 ${rarity ? RARITY_COLORS[rarity].split(' ')[1] : 'text-gray-500'}`}>
+      <div className={`text-xs mt-1 truncate w-20 ${rarity ? RARITY_BADGE_COLORS[rarity].split(' ')[1] : 'text-gray-500'}`}>
         {item ? item.code : slot}
       </div>
     </div>
@@ -255,7 +242,7 @@ function SelectionModal({ slot, equipment, consumables, items, onSelectEquipment
             {slotItems.map(item => {
               const selected = currentCode === item.code
               const rarity = item.rarity
-              const borderColor = RARITY_COLORS[rarity] ?? 'border-gray-600 text-gray-400'
+              const borderColor = RARITY_BADGE_COLORS[rarity] ?? 'border-gray-600 text-gray-400'
               const stats = item.dynamicStats ?? {}
               const scraps = SCRAP_PER_RARITY[rarity] ?? 0
 
@@ -270,7 +257,7 @@ function SelectionModal({ slot, equipment, consumables, items, onSelectEquipment
                   <div className="flex justify-center mb-1">
                     <ItemIcon code={item.code} size="md" />
                   </div>
-                  <div className={`text-sm font-medium ${RARITY_COLORS[rarity]?.split(' ')[1] ?? 'text-white'}`}>
+                  <div className={`text-sm font-medium ${RARITY_BADGE_COLORS[rarity]?.split(' ')[1] ?? 'text-white'}`}>
                     {item.code}
                   </div>
                   <div className="text-xs text-gray-500">({rarity})</div>

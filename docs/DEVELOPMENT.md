@@ -195,6 +195,7 @@ npx prisma migrate dev --name descriptive_name
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
 | GET | `/api/items` | All items with current prices, categories, display names |
+| GET | `/api/items/dismantle-values` | Scrap dismantle values per rarity tier |
 | GET | `/api/items/:code` | Single item details |
 | GET | `/api/prices/:itemCode?days=X` | Price history (default 30 days) |
 | GET | `/api/prices/:itemCode/orders` | Current buy/sell orders |

@@ -308,15 +308,3 @@ export interface SimulationResult {
   warnings: string[];
 }
 
-/** Scrap values per equipment rarity when destroyed */
-export const SCRAP_PER_RARITY: Record<string, number> = {
-  common: 2,
-  uncommon: 6,
-  rare: 18,
-  epic: 54,
-  legendary: 162,
-  mythic: 486,
-};
-
-/** Rarity display order */
-export const RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic'] as const;
