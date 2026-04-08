@@ -13,10 +13,14 @@ const sizeClasses = {
 }
 
 export default function ItemIcon({ code, size = 'md', showName = false, displayName }: ItemIconProps) {
+  // Equipment items like "gloves4" use the base slot icon "gloves.png"
+  const equipSlots = /^(helmet|chest|pants|boots|gloves)\d+$/
+  const iconCode = equipSlots.test(code) ? code.replace(/\d+$/, '') : code
+
   return (
     <div className="flex items-center gap-3">
       <img 
-        src={`/icons/${code}.png`} 
+        src={`/icons/${iconCode}.png`} 
         alt={displayName || code} 
         className={sizeClasses[size]}
         onError={(e) => { e.currentTarget.style.display = 'none' }}
