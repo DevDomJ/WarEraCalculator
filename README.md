@@ -211,7 +211,7 @@ For the full directory tree, see [docs/PROJECT.md](docs/PROJECT.md#project-struc
 - Quick Set Rarity: one-click to set all equipment slots to a specific rarity
 - Consumables: ammo (None/Light/Normal/Heavy), pill (toggle), food (Bread/Steak/Fish) with modal selection
 - Battle Simulator: burst/8h/24h simulation with full combat mechanics (precision, crit, dodge, armor, overflow, hunger/food, HP regen, equipment durability/destruction, loot drops)
-- Simulation output: 4 stat cards (Damage, Costs, Revenue, Net Profit) + scrollable hit-by-hit combat log
+- Simulation output: 4 stat cards (Damage, Costs, Revenue, Net Profit) + effective stats breakdown + scrollable hit-by-hit combat log
 - Build Manager: save/load/rename/delete builds in localStorage
 - Build Comparison: side-by-side comparison table with diff column for 2 builds
 - Battle Bonus: simplified slider (−100% to +100%) with reference values from gameConfig

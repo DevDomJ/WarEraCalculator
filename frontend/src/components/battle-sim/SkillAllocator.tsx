@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { EquipmentSlotInput, UserSkillsResponse, UserLeveling, SkillConfig } from '../../api/battleSimClient'
+import { UserSkillsResponse, UserLeveling, SkillConfig } from '../../api/battleSimClient'
 import SkillIcon from '../SkillIcon'
 
 const COMBAT_SKILLS = ['attack', 'precision', 'criticalChance', 'criticalDamages', 'armor', 'dodge', 'health', 'lootChance', 'hunger'] as const
@@ -22,10 +22,9 @@ interface Props {
   onSkillsChange: (skills: Record<string, number>) => void
   gameConfig?: UserSkillsResponse['gameConfig']
   leveling?: UserLeveling
-  equipment: Record<string, EquipmentSlotInput>
 }
 
-export default function SkillAllocator({ skills, onSkillsChange, gameConfig, leveling, equipment }: Props) {
+export default function SkillAllocator({ skills, onSkillsChange, gameConfig, leveling }: Props) {
   const skillConfigs = gameConfig?.skills
 
   const spentPoints = useMemo(() => {
@@ -83,22 +82,9 @@ export default function SkillAllocator({ skills, onSkillsChange, gameConfig, lev
     onSkillsChange(reset)
   }
 
-  const getEffectiveValue = (name: string): number => {
+  const getSkillValue = (name: string): number => {
     const level = skills[name] ?? 0
-    const cfg = skillConfigs?.[name]
-    const base = cfg?.levels[String(level)]?.value ?? 0
-    const statMap: Record<string, string> = {
-      armor: 'armor', dodge: 'dodge', precision: 'precision',
-      criticalDamages: 'criticalDamages', criticalChance: 'criticalChance', attack: 'attack',
-    }
-    let equip = 0
-    const statName = statMap[name]
-    if (statName) {
-      for (const slot of ['weapon', 'helmet', 'chest', 'pants', 'boots', 'gloves']) {
-        equip += equipment[slot]?.stats?.[statName] ?? 0
-      }
-    }
-    return base + equip
+    return skillConfigs?.[name]?.levels[String(level)]?.value ?? 0
   }
 
   if (!skillConfigs) {
@@ -129,7 +115,7 @@ export default function SkillAllocator({ skills, onSkillsChange, gameConfig, lev
             key={name}
             name={name}
             level={skills[name] ?? 0}
-            effectiveValue={getEffectiveValue(name)}
+            effectiveValue={getSkillValue(name)}
             config={skillConfigs[name]}
             playerLevel={leveling?.level ?? 0}
             remaining={remaining}
@@ -147,7 +133,7 @@ export default function SkillAllocator({ skills, onSkillsChange, gameConfig, lev
             key={name}
             name={name}
             level={skills[name] ?? 0}
-            effectiveValue={getEffectiveValue(name)}
+            effectiveValue={getSkillValue(name)}
             config={skillConfigs[name]}
             playerLevel={leveling?.level ?? 0}
             remaining={remaining}

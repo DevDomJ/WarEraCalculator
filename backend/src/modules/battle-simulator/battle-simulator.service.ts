@@ -4,7 +4,7 @@ import { extractData, TrpcResponse } from '../warera-api/warera-api.types';
 import { PrismaService } from '../../prisma.service';
 import {
   UserByIdData, CurrentEquipmentData, FullGameConfig,
-  BuildInput, SimulationRequest, SimulationResult,
+  BuildInput, SimulationRequest, SimulationResult, EffectiveStats,
   HitLogEntry, SimulationEvent, DamageStats, CostStats, RevenueStats, NetProfitStats,
   SCRAP_PER_RARITY, GameItemConfig,
 } from './battle-simulator.types';
@@ -425,7 +425,7 @@ export class BattleSimulatorService {
       dodgeRate: hitCount > 0 ? +(dodges / hitCount * 100).toFixed(0) : 0,
     };
 
-    return { damage: damageStats, costs: costStats, revenue: revenueStats, netProfit: netProfitStats, log, warnings };
+    return { effectiveStats: stats.effectiveStats, damage: damageStats, costs: costStats, revenue: revenueStats, netProfit: netProfitStats, log, warnings };
   }
 
   // ─── Stat Computation ────────────────────────────────────────────
@@ -452,36 +452,59 @@ export class BattleSimulatorService {
     };
 
     // Base skill values
-    const attackValue = getSkillValue('attack');
-    const precisionBase = getSkillValue('precision') + getEquipStat('precision');
-    const critChanceBase = getSkillValue('criticalChance') + getEquipStat('criticalChance');
-    const critDamageBase = getSkillValue('criticalDamages') + getEquipStat('criticalDamages');
-    const armorBase = getSkillValue('armor') + getEquipStat('armor');
-    const dodgeBase = getSkillValue('dodge') + getEquipStat('dodge');
+    const attackBase = getSkillValue('attack');
+    const attackEquip = getEquipStat('attack');
+    const precisionBase = getSkillValue('precision');
+    const precisionEquip = getEquipStat('precision');
+    const critChanceBase = getSkillValue('criticalChance');
+    const critChanceEquip = getEquipStat('criticalChance');
+    const critDamageBase = getSkillValue('criticalDamages');
+    const critDamageEquip = getEquipStat('criticalDamages');
+    const armorBase = getSkillValue('armor');
+    const armorEquip = getEquipStat('armor');
+    const dodgeBase = getSkillValue('dodge');
+    const dodgeEquip = getEquipStat('dodge');
 
     // Overflow: precision > 100 → +4 attack per point
-    const precisionOverflow = Math.max(0, precisionBase - 100);
-    const precision = Math.min(precisionBase, 100);
+    const precisionTotal = precisionBase + precisionEquip;
+    const precisionOverflow = Math.max(0, precisionTotal - 100);
+    const precision = Math.min(precisionTotal, 100);
     const overflowAttack = precisionOverflow * (skillCfg.precision?.skillOverflowValue ?? 4);
 
     // Overflow: critChance > 100 → +4 critDamage per point
-    const critChanceOverflow = Math.max(0, critChanceBase - 100);
-    const critChance = Math.min(critChanceBase, 100);
+    const critChanceTotal = critChanceBase + critChanceEquip;
+    const critChanceOverflow = Math.max(0, critChanceTotal - 100);
+    const critChance = Math.min(critChanceTotal, 100);
     const overflowCritDmg = critChanceOverflow * (skillCfg.criticalChance?.skillOverflowValue ?? 4);
 
-    const weaponAttack = getEquipStat('attack');
+    const armor = armorBase + armorEquip;
+    const dodge = dodgeBase + dodgeEquip;
+    const critDamage = critDamageBase + critDamageEquip + overflowCritDmg;
 
-    return {
-      attackValue: attackValue + overflowAttack,
-      weaponAttack,
-      precision,
-      critChance,
-      critDamage: critDamageBase + overflowCritDmg,
-      armor: armorBase,
-      dodge: dodgeBase,
+    const effectiveStats: EffectiveStats = {
+      attack: { base: attackBase, equipment: attackEquip, overflow: overflowAttack, total: attackBase + attackEquip + overflowAttack },
+      precision: { base: precisionBase, equipment: precisionEquip, total: precision },
+      critChance: { base: critChanceBase, equipment: critChanceEquip, total: critChance },
+      critDamage: { base: critDamageBase, equipment: critDamageEquip, overflow: overflowCritDmg, total: critDamage },
+      armor: { base: armorBase, equipment: armorEquip, total: armor },
+      dodge: { base: dodgeBase, equipment: dodgeEquip, total: dodge },
       health: getSkillValue('health'),
       hunger: getSkillValue('hunger'),
       lootChance: getSkillValue('lootChance'),
+    };
+
+    return {
+      effectiveStats,
+      attackValue: attackBase + overflowAttack,
+      weaponAttack: attackEquip,
+      precision,
+      critChance,
+      critDamage,
+      armor,
+      dodge,
+      health: effectiveStats.health,
+      hunger: effectiveStats.hunger,
+      lootChance: effectiveStats.lootChance,
     };
   }
 

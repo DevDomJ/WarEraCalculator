@@ -1,4 +1,4 @@
-import { SimulationResult, SimulationEvent, HitLogEntry } from '../../api/battleSimClient'
+import { SimulationResult, SimulationEvent, HitLogEntry, EffectiveStats, EffectiveStatBreakdown } from '../../api/battleSimClient'
 import { formatCompact, formatGold } from '../../utils/format'
 import SkillIcon from '../SkillIcon'
 import CoinIcon from '../CoinIcon'
@@ -42,6 +42,9 @@ export default function CombatLogPanel({ result, duration, loading }: Props) {
         <RevenueCard revenue={revenue} />
         <NetProfitCard netProfit={netProfit} />
       </div>
+
+      {/* Effective Stats Breakdown */}
+      {result.effectiveStats && <EffectiveStatsPanel stats={result.effectiveStats} />}
 
       {/* Combat log */}
       <div className="bg-gray-900 rounded-lg p-4 max-h-[500px] overflow-y-auto font-mono text-sm">
@@ -213,6 +216,56 @@ function CostRow({ icon, label, value }: { icon: React.ReactNode; label: string;
     <div className="flex justify-between">
       <span className="text-gray-300">{icon} {label}</span>
       <span className="text-white">{formatGold(value)}</span>
+    </div>
+  )
+}
+
+function EffectiveStatsPanel({ stats }: { stats: EffectiveStats }) {
+  const breakdownStats: { label: string; icon: string; stat: EffectiveStatBreakdown & { overflow?: number } }[] = [
+    { label: 'Attack', icon: 'attack', stat: stats.attack },
+    { label: 'Precision', icon: 'precision', stat: stats.precision },
+    { label: 'Crit Chance', icon: 'criticalChance', stat: stats.critChance },
+    { label: 'Crit Damage', icon: 'criticalDamages', stat: stats.critDamage },
+    { label: 'Armor', icon: 'armor', stat: stats.armor },
+    { label: 'Dodge', icon: 'dodge', stat: stats.dodge },
+  ]
+
+  return (
+    <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-6">
+      <h3 className="text-sm font-bold text-purple-400 mb-3">📊 Effective Stats Breakdown</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-2 text-sm">
+        {breakdownStats.map(({ label, icon, stat }) => (
+          <div key={label} className="flex items-center justify-between">
+            <span className="text-gray-300 flex items-center gap-1.5">
+              <SkillIcon name={icon} size="sm" /> {label}
+            </span>
+            <span className="text-white">
+              <span className="text-gray-500">{stat.base}</span>
+              {stat.equipment > 0 && <span className="text-blue-400"> +{stat.equipment}</span>}
+              {(stat.overflow ?? 0) > 0 && <span className="text-yellow-400"> +{stat.overflow}</span>}
+              <span className="font-bold"> = {stat.total}</span>
+            </span>
+          </div>
+        ))}
+        <div className="col-span-full border-t border-gray-700 my-1" />
+        <div className="flex items-center justify-between">
+          <span className="text-gray-300 flex items-center gap-1.5"><SkillIcon name="health" size="sm" /> Health</span>
+          <span className="text-white font-bold">{stats.health}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-gray-300 flex items-center gap-1.5"><SkillIcon name="hunger" size="sm" /> Hunger</span>
+          <span className="text-white font-bold">{stats.hunger}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-gray-300 flex items-center gap-1.5"><SkillIcon name="lootChance" size="sm" /> Loot Chance</span>
+          <span className="text-white font-bold">{stats.lootChance}</span>
+        </div>
+      </div>
+      <div className="flex gap-4 mt-2 text-xs text-gray-500">
+        <span><span className="text-gray-400">Base</span></span>
+        <span><span className="text-blue-400">+Equipment</span></span>
+        <span><span className="text-yellow-400">+Overflow</span></span>
+      </div>
     </div>
   )
 }

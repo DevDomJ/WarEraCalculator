@@ -223,7 +223,27 @@ export interface NetProfitStats {
   dodgeRate: number
 }
 
+export interface EffectiveStatBreakdown {
+  base: number
+  equipment: number
+  total: number
+  overflow?: number
+}
+
+export interface EffectiveStats {
+  attack: EffectiveStatBreakdown & { overflow: number }
+  precision: EffectiveStatBreakdown
+  critChance: EffectiveStatBreakdown
+  critDamage: EffectiveStatBreakdown & { overflow: number }
+  armor: EffectiveStatBreakdown
+  dodge: EffectiveStatBreakdown
+  health: number
+  hunger: number
+  lootChance: number
+}
+
 export interface SimulationResult {
+  effectiveStats: EffectiveStats
   damage: DamageStats
   costs: CostStats
   revenue: RevenueStats

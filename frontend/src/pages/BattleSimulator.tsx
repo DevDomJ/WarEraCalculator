@@ -228,7 +228,6 @@ export default function BattleSimulator() {
             onSkillsChange={setSkills}
             gameConfig={userData?.gameConfig}
             leveling={userData?.leveling}
-            equipment={equipment}
           />
         )}
         {activeTab === 'Bonuses' && (
