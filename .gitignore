@@ -62,3 +62,9 @@ PRODUCTION_DEPLOY.md
 
 # Temporary files
 tmp/
+
+# Domain-specific misc folder
+domSonstiges/
+
+# Dev server script
+startDevServer.sh
