@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
-import { UserSkillsResponse, UserLeveling, SkillConfig } from '../../api/battleSimClient'
+import { useMemo, useState } from 'react'
+import { GameConfigResponse, UserLeveling, SkillConfig } from '../../api/battleSimClient'
 import SkillIcon from '../SkillIcon'
 
 const COMBAT_SKILLS = ['attack', 'precision', 'criticalChance', 'criticalDamages', 'armor', 'dodge', 'health', 'lootChance', 'hunger'] as const
@@ -20,12 +20,13 @@ const ECON_BAR_COLOR = 'bg-orange-500'
 interface Props {
   skills: Record<string, number>
   onSkillsChange: (skills: Record<string, number>) => void
-  gameConfig?: UserSkillsResponse['gameConfig']
+  gameConfig?: GameConfigResponse
   leveling?: UserLeveling
 }
 
 export default function SkillAllocator({ skills, onSkillsChange, gameConfig, leveling }: Props) {
   const skillConfigs = gameConfig?.skills
+  const [manualLevel, setManualLevel] = useState(1)
 
   const spentPoints = useMemo(() => {
     if (!skillConfigs) return 0
@@ -36,7 +37,9 @@ export default function SkillAllocator({ skills, onSkillsChange, gameConfig, lev
     return total
   }, [skills, skillConfigs])
 
-  const totalPoints = leveling?.totalSkillPoints ?? 0
+  const playerLevel = leveling?.level ?? manualLevel
+  const totalPoints = leveling?.totalSkillPoints ?? (manualLevel * (gameConfig?.skillPointsPerLevel ?? 4))
+  const maxLevel = gameConfig?.maxLevel ?? 100
   const remaining = totalPoints - spentPoints
 
   const setSkillLevel = (name: string, level: number) => {
@@ -56,7 +59,7 @@ export default function SkillAllocator({ skills, onSkillsChange, gameConfig, lev
     for (const name of Object.keys(skills)) newSkills[name] = 0
 
     let budget = totalPoints
-    const playerLvl = leveling?.level ?? 0
+    const playerLvl = playerLevel
 
     // Greedy: for each skill in priority order, max it out if budget allows
     for (const name of priority) {
@@ -96,7 +99,18 @@ export default function SkillAllocator({ skills, onSkillsChange, gameConfig, lev
       {/* Points bar */}
       <div className="flex items-center gap-4 mb-6 bg-gray-900 rounded px-3 py-2">
         <span className="text-sm text-gray-300">
-          Skill Points: <span className={remaining < 0 ? 'text-red-400' : 'text-green-400'}>{remaining}</span> / {totalPoints}
+          Skill Points: <span className={remaining < 0 ? 'text-red-400' : 'text-green-400'}>{remaining}</span> / {leveling ? (
+            totalPoints
+          ) : (
+            <>{totalPoints} <span className="text-gray-500">(Lvl <input
+              type="number"
+              min="1"
+              max={maxLevel}
+              value={manualLevel}
+              onChange={e => setManualLevel(Math.max(1, Math.min(maxLevel, parseInt(e.target.value) || 1)))}
+              className="bg-gray-700 text-white rounded px-2 py-0.5 text-sm w-14 inline-block"
+            />)</span></>
+          )}
         </span>
         <span className="text-sm text-gray-500">({spentPoints} spent)</span>
         <button onClick={resetAll} className="ml-auto px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs text-white">
@@ -117,7 +131,7 @@ export default function SkillAllocator({ skills, onSkillsChange, gameConfig, lev
             level={skills[name] ?? 0}
             effectiveValue={getSkillValue(name)}
             config={skillConfigs[name]}
-            playerLevel={leveling?.level ?? 0}
+            playerLevel={playerLevel}
             remaining={remaining}
             barColor={COMBAT_BAR_COLOR}
             onChange={l => setSkillLevel(name, l)}
@@ -135,7 +149,7 @@ export default function SkillAllocator({ skills, onSkillsChange, gameConfig, lev
             level={skills[name] ?? 0}
             effectiveValue={getSkillValue(name)}
             config={skillConfigs[name]}
-            playerLevel={leveling?.level ?? 0}
+            playerLevel={playerLevel}
             remaining={remaining}
             barColor={ECON_BAR_COLOR}
             onChange={l => setSkillLevel(name, l)}

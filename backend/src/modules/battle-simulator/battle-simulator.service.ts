@@ -26,17 +26,40 @@ export class BattleSimulatorService {
     if (this.gameConfigCache && Date.now() - this.gameConfigFetchedAt < this.CACHE_TTL) {
       return this.gameConfigCache;
     }
-    const res = await this.warEraApi.request<TrpcResponse<FullGameConfig>>('gameConfig.getGameConfig');
-    this.gameConfigCache = extractData(res);
-    this.gameConfigFetchedAt = Date.now();
+    try {
+      const res = await this.warEraApi.request<TrpcResponse<FullGameConfig>>('gameConfig.getGameConfig');
+      this.gameConfigCache = extractData(res);
+      this.gameConfigFetchedAt = Date.now();
+    } catch (e) {
+      if (this.gameConfigCache) {
+        this.logger.warn('Failed to refresh gameConfig, serving stale cache');
+        return this.gameConfigCache;
+      }
+      throw e;
+    }
     return this.gameConfigCache;
   }
 
+  async getGameConfigForClient() {
+    const config = await this.getGameConfig();
+    return {
+      skills: config.skills,
+      battle: config.battle,
+      loot: config.loot,
+      items: this.getRelevantItems(config),
+      hqLevels: config.upgradesConfig.headquarters.levels,
+      regenDividedBy: config.user.regenDividedBy,
+      maxHunger: config.user.maxHunger,
+      skillPointsPerLevel: config.user.skillPointsPerLevel ?? 4,
+      maxLevel: config.user.maxLevel ?? 100,
+    };
+  }
+
   async getUserSkills(userId: string) {
-    const [userRes, equipRes, config] = await Promise.all([
+    const [userRes, equipRes, gameConfig] = await Promise.all([
       this.warEraApi.request<TrpcResponse<UserByIdData>>('user.getUserById', { userId }),
       this.warEraApi.request<TrpcResponse<CurrentEquipmentData>>('inventory.fetchCurrentEquipment', { userId }),
-      this.getGameConfig(),
+      this.getGameConfigForClient(),
     ]);
 
     const user = extractData(userRes);
@@ -50,15 +73,7 @@ export class BattleSimulatorService {
       leveling: user.leveling,
       skills: user.skills,
       equipment,
-      gameConfig: {
-        skills: config.skills,
-        battle: config.battle,
-        loot: config.loot,
-        items: this.getRelevantItems(config),
-        hqLevels: config.upgradesConfig.headquarters.levels,
-        regenDividedBy: config.user.regenDividedBy,
-        maxHunger: config.user.maxHunger,
-      },
+      gameConfig,
     };
   }
 

@@ -40,6 +40,8 @@ export default function BattleSimulator() {
   const [skills, setSkills] = useState<Record<string, number>>(getDefaultSkills())
   const [equipment, setEquipment] = useState<Record<string, EquipmentSlotInput>>(getDefaultEquipment())
   const [consumables, setConsumables] = useState<ConsumablesInput>(getDefaultConsumables())
+  const [militaryRank, setMilitaryRank] = useState(0)
+  const [militaryRankPercent, setMilitaryRankPercent] = useState(0)
 
   // Simulation state
   const [bountyPer1kDmg, setBountyPer1kDmg] = useState(0.3)
@@ -48,7 +50,15 @@ export default function BattleSimulator() {
   const [simDuration, setSimDuration] = useState<'burst' | '8h' | '24h' | null>(null)
   const [simLoading, setSimLoading] = useState(false)
 
-  const { data: userData, isLoading, error } = useQuery({
+  // Game config is fetched independently — always available even without user data
+  const { data: gameConfig, isLoading: configLoading, error: configError } = useQuery({
+    queryKey: ['battle-sim-game-config'],
+    queryFn: () => battleSimApi.getGameConfig(),
+    staleTime: 24 * 60 * 60 * 1000,
+  })
+
+  // User data is optional — page works without it
+  const { data: userData, isLoading: userLoading, error: userError } = useQuery({
     queryKey: ['battle-sim-user', userId],
     queryFn: () => battleSimApi.getUserSkills(userId),
     enabled: !!userId,
@@ -63,6 +73,8 @@ export default function BattleSimulator() {
       currentSkills[name] = data.level
     }
     setSkills(currentSkills)
+    setMilitaryRank(userData.militaryRank)
+    setMilitaryRankPercent(userData.militaryRankPercent)
 
     const eq = userData.equipment
     const newEquip: Record<string, EquipmentSlotInput> = getDefaultEquipment()
@@ -88,14 +100,13 @@ export default function BattleSimulator() {
   }, [userData, autoLoaded, loadCurrentBuild])
 
   const handleSimulate = async (duration: 'burst' | '8h' | '24h') => {
-    if (!userData) return
     setSimLoading(true)
     setSimDuration(duration)
     try {
       const result = await battleSimApi.simulate({
         build: { skills, equipment, consumables },
-        militaryRank: userData.militaryRank,
-        militaryRankPercent: userData.militaryRankPercent,
+        militaryRank,
+        militaryRankPercent,
         duration,
         bountyPer1kDmg,
         battleBonusPercent,
@@ -122,12 +133,11 @@ export default function BattleSimulator() {
     setConsumables(build.consumables)
   }
 
-  if (!userId) {
-    return (
-      <div className="text-center py-12 text-gray-400">
-        <p>No User ID found. Please set your User ID on the <a href="/companies" className="text-blue-400 hover:text-blue-300">Companies</a> page first.</p>
-      </div>
-    )
+  if (configLoading) {
+    return <div className="text-center py-12 text-gray-400">Loading game configuration...</div>
+  }
+  if (configError || !gameConfig) {
+    return <div className="text-center py-12 text-red-400">Failed to load game configuration. Please try again later.</div>
   }
 
   return (
@@ -144,8 +154,17 @@ export default function BattleSimulator() {
             </button>
           </>
         )}
-        {isLoading && <span className="text-gray-400 text-sm">Loading user data...</span>}
-        {error && <span className="text-red-400 text-sm">Failed to load user data</span>}
+        {!userData && !userLoading && (
+          <span className="text-gray-300 text-sm flex items-center gap-2">
+            Rank:
+            <input type="number" min="0" value={militaryRank} onChange={e => setMilitaryRank(Math.max(0, parseInt(e.target.value) || 0))} className="bg-gray-700 text-white rounded px-2 py-0.5 text-sm w-14" />
+            Rank %:
+            <input type="number" min="0" max="100" step="0.1" value={militaryRankPercent} onChange={e => setMilitaryRankPercent(Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)))} className="bg-gray-700 text-white rounded px-2 py-0.5 text-sm w-16" />
+          </span>
+        )}
+        {userLoading && <span className="text-gray-400 text-sm">Loading user data...</span>}
+        {userError && <span className="text-yellow-400 text-sm">⚠️ Could not load user data — using defaults</span>}
+        {!userId && !userError && <span className="text-gray-400 text-sm">No User ID set — <a href="/companies" className="text-blue-400 hover:text-blue-300">set one here</a> to auto-load your build</span>}
       </div>
 
       {/* Tabs */}
@@ -169,21 +188,21 @@ export default function BattleSimulator() {
       <div className="flex items-center gap-3 mb-4">
         <button
           onClick={() => handleSimulate('burst')}
-          disabled={!userData || simLoading}
+          disabled={simLoading}
           className="px-4 py-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 rounded text-sm text-white font-medium"
         >
           ⚔️ Run Burst
         </button>
         <button
           onClick={() => handleSimulate('8h')}
-          disabled={!userData || simLoading}
+          disabled={simLoading}
           className="px-4 py-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 rounded text-sm text-white font-medium"
         >
           ⏱ Run 8h
         </button>
         <button
           onClick={() => handleSimulate('24h')}
-          disabled={!userData || simLoading}
+          disabled={simLoading}
           className="px-4 py-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 rounded text-sm text-white font-medium"
         >
           ⏱ Run 24h
@@ -219,14 +238,14 @@ export default function BattleSimulator() {
             consumables={consumables}
             onEquipmentChange={setEquipment}
             onConsumablesChange={setConsumables}
-            gameConfig={userData?.gameConfig}
+            gameConfig={gameConfig}
           />
         )}
         {activeTab === 'Skills' && (
           <SkillAllocator
             skills={skills}
             onSkillsChange={setSkills}
-            gameConfig={userData?.gameConfig}
+            gameConfig={gameConfig}
             leveling={userData?.leveling}
           />
         )}
@@ -234,7 +253,7 @@ export default function BattleSimulator() {
           <BonusPanel
             battleBonusPercent={battleBonusPercent}
             onBattleBonusChange={setBattleBonusPercent}
-            gameConfig={userData?.gameConfig}
+            gameConfig={gameConfig}
           />
         )}
         {activeTab === 'Builds' && (
@@ -250,10 +269,10 @@ export default function BattleSimulator() {
             loading={simLoading}
           />
         )}
-        {activeTab === 'Compare' && userData && (
+        {activeTab === 'Compare' && (
           <BuildComparison
-            militaryRank={userData.militaryRank}
-            militaryRankPercent={userData.militaryRankPercent}
+            militaryRank={militaryRank}
+            militaryRankPercent={militaryRankPercent}
             bountyPer1kDmg={bountyPer1kDmg}
             battleBonusPercent={battleBonusPercent}
           />

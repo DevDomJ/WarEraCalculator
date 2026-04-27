@@ -6,6 +6,11 @@ import { SimulateDto, CompareDto } from './battle-simulator.dto';
 export class BattleSimulatorController {
   constructor(private readonly battleSim: BattleSimulatorService) {}
 
+  @Get('game-config')
+  async getGameConfig() {
+    return this.battleSim.getGameConfigForClient();
+  }
+
   @Get('user-skills/:userId')
   async getUserSkills(@Param('userId') userId: string) {
     return this.battleSim.getUserSkills(userId);

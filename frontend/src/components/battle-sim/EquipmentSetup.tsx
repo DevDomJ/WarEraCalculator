@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { EquipmentSlotInput, ConsumablesInput, GameItemConfig, UserSkillsResponse } from '../../api/battleSimClient'
+import { EquipmentSlotInput, ConsumablesInput, GameItemConfig, GameConfigResponse } from '../../api/battleSimClient'
 import ItemIcon from '../ItemIcon'
 import SkillIcon from '../SkillIcon'
 import { RARITIES, RARITY_BADGE_COLORS, SCRAP_PER_RARITY } from '../../utils/rarity'
@@ -40,7 +40,7 @@ interface Props {
   consumables: ConsumablesInput
   onEquipmentChange: (eq: Record<string, EquipmentSlotInput>) => void
   onConsumablesChange: (c: ConsumablesInput) => void
-  gameConfig?: UserSkillsResponse['gameConfig']
+  gameConfig?: GameConfigResponse
 }
 
 export default function EquipmentSetup({ equipment, consumables, onEquipmentChange, onConsumablesChange, gameConfig }: Props) {

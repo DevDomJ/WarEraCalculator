@@ -6,6 +6,7 @@ import { WarEraApiService } from './warera-api.service';
 @Module({
   imports: [
     HttpModule.register({
+      timeout: 10_000,
       httpsAgent: new https.Agent({ keepAlive: true, maxSockets: 10 }),
     }),
   ],

@@ -1,9 +1,9 @@
-import { UserSkillsResponse } from '../../api/battleSimClient'
+import { GameConfigResponse } from '../../api/battleSimClient'
 
 interface Props {
   battleBonusPercent: number
   onBattleBonusChange: (v: number) => void
-  gameConfig?: UserSkillsResponse['gameConfig']
+  gameConfig?: GameConfigResponse
 }
 
 export default function BonusPanel({ battleBonusPercent, onBattleBonusChange, gameConfig }: Props) {

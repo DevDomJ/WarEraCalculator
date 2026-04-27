@@ -110,15 +110,7 @@ export interface UserSkillsResponse {
   leveling: UserLeveling
   skills: Record<string, UserSkillData>
   equipment: CurrentEquipmentData
-  gameConfig: {
-    skills: Record<string, SkillConfig>
-    battle: BattleConfig
-    loot: LootConfig
-    items: Record<string, GameItemConfig>
-    hqLevels: Record<string, HQLevel>
-    regenDividedBy: number
-    maxHunger: number
-  }
+  gameConfig: GameConfigResponse
 }
 
 // --- Simulation types ---
@@ -276,9 +268,23 @@ export interface CompareResult {
   result: SimulationResult
 }
 
+export interface GameConfigResponse {
+  skills: Record<string, SkillConfig>
+  battle: BattleConfig
+  loot: LootConfig
+  items: Record<string, GameItemConfig>
+  hqLevels: Record<string, HQLevel>
+  regenDividedBy: number
+  maxHunger: number
+  skillPointsPerLevel: number
+  maxLevel: number
+}
+
 // --- API ---
 
 export const battleSimApi = {
+  getGameConfig: () =>
+    api.get<GameConfigResponse>('/battle-sim/game-config').then(r => r.data),
   getUserSkills: (userId: string) =>
     api.get<UserSkillsResponse>(`/battle-sim/user-skills/${userId}`).then(r => r.data),
   simulate: (req: SimulationRequest) =>
